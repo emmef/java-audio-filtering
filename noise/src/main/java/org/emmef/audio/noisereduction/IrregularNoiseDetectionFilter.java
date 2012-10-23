@@ -1,0 +1,94 @@
+package org.emmef.audio.noisereduction;
+
+import org.emmef.audio.buckets.BucketScanner;
+import org.emmef.audio.noisedetection.NrMeasurementSettings;
+import org.emmef.audio.noisedetection.NrMeasurementValues;
+import org.emmef.logging.Logger;
+
+public class IrregularNoiseDetectionFilter implements ChainableFilter {
+	private static final Logger logger = Logger.getDefault();
+	private final BucketScanner scanner;
+	private final double noiseLevel;
+	private final byte[] markers;
+	private int position;
+
+	IrregularNoiseDetectionFilter(BucketScanner scanner, double noiseLevel, byte[] markers) {
+		this.scanner = scanner;
+		this.noiseLevel = noiseLevel;
+		this.markers = markers;
+		reset();
+	}
+
+	public Object getMetaData() {
+		return getNoiseLevel();
+	}
+
+	public double filter(double input) {
+		if ((markers[position] & NoiseLevelMarkerFilter.MARK) != 0) {
+			scanner.addUnscaledSample(input * input);
+		}
+		position++;
+		return input;
+	}
+
+	public void reset() {
+		position = 0;
+		scanner.reset();
+	}
+	
+	public double getNoiseLevel() {
+		final double newNoiseLevel;
+		final double correction;
+		if (scanner.isWholeBucketScanned()) {
+			newNoiseLevel = Math.max(Math.sqrt(scanner.getMaximum()), noiseLevel);
+			correction = newNoiseLevel / noiseLevel;
+		}
+		else {
+			newNoiseLevel = noiseLevel;
+			correction = 1.0;
+		}
+		if (correction > 1.0) {
+			logger.config("Irregular noise level correction: %+1.1f dB (bucket %d samples)", 20*Math.log10(correction), scanner.getBucketSize());
+		}
+		
+		return newNoiseLevel;
+	}
+
+	
+	public static class Factory implements FilterFactory {
+		private final NrMeasurementValues nrMeasurements;
+		private final ThreadLocal<BucketScanner> scanner = new ThreadLocal<BucketScanner>();
+		private final RatedTimings ratedTimings;
+
+		public Factory(NrMeasurementSettings nrMeasurements, RatedTimings ratedTimings) {
+			this.ratedTimings = ratedTimings;
+			this.nrMeasurements = nrMeasurements.withSampleRate((int)ratedTimings.sampleRate);
+		}
+
+		public ChainableFilter createFilter(Object filterMetaData, double minFreq, double maxFreq, byte[] markers) {
+			if (filterMetaData == null) {
+				throw new NullPointerException("filterMetaData");
+			}
+			final int bucketSize = ratedTimings.getEffectiveMeasurementSamples(nrMeasurements, minFreq);
+			final BucketScanner newScanner = new BucketScanner(bucketSize, BucketScanner.SCALE_48BIT);
+			scanner.set(newScanner);
+			return new IrregularNoiseDetectionFilter(newScanner, ((Double)filterMetaData).doubleValue(), markers);
+		}
+
+		public int getEndOffset() {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+
+		public int getLatency() {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+
+		public int getStartOffset() {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+
+	}
+}
