@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.logging.Level;
 
 import org.emmef.audio.frame.FrameType;
-import org.emmef.audio.nativesoundfile.SoundFile;
-import org.emmef.audio.nativesoundfile.SoundFileType;
+import org.emmef.audio.nativesoundfile.LibSndFile;
+import org.emmef.audio.nativesoundfile.SndFileType;
 import org.emmef.audio.nodes.SoundSink;
 import org.emmef.audio.nodes.SoundSource;
 import org.emmef.audio.noisedetection.NrMeasurementSettings;
@@ -168,14 +168,16 @@ public class NoiseRemover implements Program {
 	}
 
 	public void run(String[] args) throws Exception {
+		Logger.getDefault().setLevel(Level.FINEST);
+		LibSndFile.readFrom("");
 		cmd.parse(args);
 		logger.setLevel(Level.FINE);
-		final SoundSource<SoundFileType> soundSource = new SoundFile(inputFile.getValue().getAbsolutePath());
+		final SoundSource<SndFileType> soundSource = LibSndFile.readFrom(inputFile.getValue().getAbsolutePath());
 		logger.config("Reading \"" + soundSource + "\"");
 		final String absolutePath = new File(outputDirectory.getValue(), inputFile.getValue().getName()).getAbsolutePath();
 	
 		try {
-			final SoundSink<?> soundSink = new SoundFile(absolutePath, soundSource.createInfo());
+			final SoundSink<?> soundSink = LibSndFile.writeTo(absolutePath, soundSource.getMetrics(), soundSource.getMetaData());
 			try {
 				applyNoiseFilter(soundSource, soundSink);
 			}
@@ -191,9 +193,9 @@ public class NoiseRemover implements Program {
 
 	private void applyNoiseFilter(final SoundSource<?> soundSource, final SoundSink<?> soundSink) throws IOException, InterruptedException {
 		float[] samples;
-		final FrameType frameType = soundSource.getFrameType();
-		final long frameCount = soundSource.getFrameCount();
-		logger.fine("Frames=%d; channels=%d", soundSource.getFrameCount(), frameType.channels);
+		final FrameType frameType = soundSource.getMetrics();
+		final long frameCount = soundSource.getMetrics().getFrames();
+		logger.fine("Frames=%d; channels=%d", frameCount, frameType.channels);
 		
 		if (frameCount > Integer.MAX_VALUE/ frameType.channels) {
 			throw new IllegalStateException("Too many frames (" + frameCount + ") in file for number of channels (" + frameType.channels + ")");

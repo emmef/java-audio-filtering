@@ -2,9 +2,7 @@ package org.emmef.audio.nodes;
 
 import java.io.IOException;
 
-import org.emmef.audio.format.OpaqueFormat;
-
-public interface SoundSink<T extends OpaqueFormat> extends SoundSourceOrSink<T> {
+public interface SoundSink<T> extends SoundSourceOrSink<T> {
 
 	long writeFrames(double[] buffer) throws IOException;
 

@@ -2,7 +2,7 @@ package org.emmef.audio.frame;
 
 public class FrameType {
 	public final int channels;
-	public final int samplerate;
+	public final int sampleRate;
 	
 	public static String toString(int channels, int samplerate) {
 		String channelText;
@@ -63,11 +63,11 @@ public class FrameType {
 		}
 		else {
 			this.channels = channels;
-			this.samplerate = rate;
+			this.sampleRate = rate;
 		}
 	}
 	
 	public String toString() {
-		return toString(channels, samplerate);
+		return toString(channels, sampleRate);
 	}
 }

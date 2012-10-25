@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.emmef.audio.format.OpaqueFormat;
 import org.emmef.audio.frame.FrameType;
 
 /**
@@ -14,7 +13,7 @@ import org.emmef.audio.frame.FrameType;
  * @author $Author: michelf $ (last modified)
  * $Revision: 1.2 $
  */
-public final class SoundFileType implements OpaqueFormat {
+final class SoundFileType {
 	// masks
 	public final static int MASK_SUBTYPE        = 0x0000FFFF;
 	public final static int MASK_TYPE           = 0x0FFF0000;
@@ -147,8 +146,8 @@ public final class SoundFileType implements OpaqueFormat {
 		
 		int format = majorFormat.getFormat() | subFormat.getFormat() | endianNess;
 		
-		if (!isValidFormat(frameType.samplerate, frameType.channels, format)) {
-			throw new IllegalArgumentException("Invalid or inrecognized sound file type: \"" + majorFormat + " - " + subFormat + "\" with " + frameType.channels + " channels at " + frameType.samplerate + " Hz");
+		if (!isValidFormat(frameType.sampleRate, frameType.channels, format)) {
+			throw new IllegalArgumentException("Invalid or inrecognized sound file type: \"" + majorFormat + " - " + subFormat + "\" with " + frameType.channels + " channels at " + frameType.sampleRate + " Hz");
 		}
 		this.majorFormat = majorFormat;
 		this.subFormat = subFormat;
@@ -168,7 +167,7 @@ public final class SoundFileType implements OpaqueFormat {
 	}
 	
 	public InfoStructure createInfoStructure() {
-		return new InfoStructure(getNativeFormat(majorFormat, subFormat), frameType.channels, frameType.samplerate);
+		return new InfoStructure(getNativeFormat(majorFormat, subFormat), frameType.channels, frameType.sampleRate);
 	}
 	
 	public static InfoStructure createEmptyInfoStructure() {
@@ -196,7 +195,7 @@ public final class SoundFileType implements OpaqueFormat {
 	}
 	
 	public final int getSampleRate() {
-		return frameType.samplerate;
+		return frameType.sampleRate;
 	}
 	
 	public final String toString() {
@@ -221,10 +220,7 @@ public final class SoundFileType implements OpaqueFormat {
 		}
 	}
 	
-	
     static {
-       	System.loadLibrary("SoundFileNative");
-    
        	if (!initLibSoundFile()) {
        		throw new IllegalStateException("Could not initialize sound library");
        	}

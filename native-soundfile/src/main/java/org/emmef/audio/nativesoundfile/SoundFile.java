@@ -3,10 +3,10 @@ package org.emmef.audio.nativesoundfile;
 import java.io.IOException;
 
 import org.emmef.audio.format.SoundMetrics;
-import org.emmef.audio.frame.FrameType;
 import org.emmef.audio.frame.Whence;
 import org.emmef.audio.nativesoundfile.SoundFileType.InfoStructure;
 import org.emmef.audio.nodes.SoundSourceAndSink;
+import org.emmef.config.nativeloader.NativeLoader;
 /**
  * Part of the SoundFile project 
  * @author michelf (original)
@@ -14,7 +14,7 @@ import org.emmef.audio.nodes.SoundSourceAndSink;
  * @author $Author: michelf $ (last modified)
  * $Revision: 1.3 $
  */
-public class SoundFile implements SoundSourceAndSink<SoundFileType> {
+class SoundFile implements SoundSourceAndSink<SoundFileType> {
 	final static int WHENCE_SET = 1;
 	final static int WHENCE_CURRENT = 2;
 	final static int WHENCE_FROM_END = 3;
@@ -44,11 +44,10 @@ public class SoundFile implements SoundSourceAndSink<SoundFileType> {
 		}
 	}	
 	private final SoundFileType format;
-	private final long frameCount;
+	private final SoundMetrics metrics;
 	private final long handle;
 	private final String fileName;
 	private final Mode mode;
-	private final boolean isSeekable;
 	private boolean closed;
     
     public SoundFile(String fileName) throws IOException {
@@ -70,8 +69,7 @@ public class SoundFile implements SoundSourceAndSink<SoundFileType> {
         	this.fileName = fileName;
         	this.mode = Mode.READONLY;
         	this.format = new SoundFileType(info);
-        	this.frameCount = info.frames;
-        	this.isSeekable = info.seekable;
+        	this.metrics = new SoundMetrics(info.channels, info.frames, info.samplerate, info.seekable);
         	finished = true;
     	}
     	finally {
@@ -81,7 +79,7 @@ public class SoundFile implements SoundSourceAndSink<SoundFileType> {
     	}
     }
     
-    public SoundFile(String fileName, SoundMetrics<SoundFileType> formatInfo) throws IOException {
+    public SoundFile(String fileName, SoundMetrics formatInfo, SoundFileType type) throws IOException {
     	if (fileName == null) {
     		throw new IllegalArgumentException("Parameter 'filename' cannot be null");
     	}
@@ -89,7 +87,7 @@ public class SoundFile implements SoundSourceAndSink<SoundFileType> {
     		throw new IllegalArgumentException();
     	}
     	final long handle;
-    	InfoStructure info = formatInfo.getFormat().createInfoStructure();
+    	InfoStructure info = new InfoStructure(type.getFormat(), formatInfo.channels, formatInfo.sampleRate); 
     	synchronized (ioLock) {
     		handle = openWriteable(fileName, info);
 		}
@@ -102,8 +100,7 @@ public class SoundFile implements SoundSourceAndSink<SoundFileType> {
 	    	this.format = new SoundFileType(info);
 	    	this.fileName = fileName;
 	    	this.mode = Mode.WRITEONLY;
-	    	this.isSeekable = info.seekable;
-	    	this.frameCount = info.frames;
+        	this.metrics = new SoundMetrics(info.channels, info.frames, info.samplerate, info.seekable);
 	    	finished = true;
     	}
     	finally {
@@ -121,28 +118,8 @@ public class SoundFile implements SoundSourceAndSink<SoundFileType> {
     }
     
     @Override
-    public FrameType getFrameType() {
-    	return new FrameType(format.getChannels(), format.getSampleRate());
-    }
-    
-    @Override
-    public SoundFileType getBinaryFormat() {
-    	return new SoundFileType(format.getFormat(), format.getChannels(), format.getSampleRate());
-    }
-    
-    @Override
-    public SoundMetrics<SoundFileType> createInfo() {
-    	return new SoundMetrics<SoundFileType>(format.getChannels(), format, 0L, format.getSampleRate(), false, SoundFileType.class);
-    }
-    
-    @Override
-    public long getFrameCount() {
-    	return frameCount;
-    }
-    
-    @Override
-    public boolean isSeekable() {
-    	return isSeekable;
+    public SoundFileType getMetaData() {
+    	return format;
     }
     
     @Override
@@ -160,6 +137,11 @@ public class SoundFile implements SoundSourceAndSink<SoundFileType> {
     		return readFloat(handle, buffer, format.getChannels(), buffer.length / format.getChannels());
 		}
     }
+
+	@Override
+	public SoundMetrics getMetrics() {
+		return metrics;
+	}
     
     @Override
     public long readFrames(double[] buffer, int frameCount) throws IOException {
@@ -211,7 +193,7 @@ public class SoundFile implements SoundSourceAndSink<SoundFileType> {
     
     @Override
     public long seekFrame(long framePosition, Whence whence) throws IOException {
-    	if (isSeekable) {
+    	if (metrics.isSeekable()) {
         	synchronized (ioLock) {
         		return seek(handle, framePosition, NativeWhence.from(whence));
     		}
@@ -249,7 +231,7 @@ public class SoundFile implements SoundSourceAndSink<SoundFileType> {
     
     @Override
     public String toString() {
-    	return getClass().getSimpleName() + "[" + getBinaryFormat() + "; " + mode + "; \"" + fileName + "\"]";
+    	return getClass().getSimpleName() + "[" + format + "; " + mode + "; \"" + fileName + "\"]";
     }
     
     @Override
@@ -272,6 +254,6 @@ public class SoundFile implements SoundSourceAndSink<SoundFileType> {
 	private static native long seek(long handle, long position, NativeWhence whence) throws IOException;
     
 	static {
-		System.loadLibrary("SoundFileNative");
+		NativeLoader.loadLibrary(LibSoundFile.class, "SoundFileNative");
 	}
 }

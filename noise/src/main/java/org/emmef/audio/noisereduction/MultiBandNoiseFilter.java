@@ -38,17 +38,17 @@ public class MultiBandNoiseFilter {
 		}
 		this.samples = samples;
 		List<FilterFactory> filterFactories = new ArrayList<FilterFactory>();
-		filterFactories.add(new MaxRmsDetectionFilter.Factory(frameType.samplerate, nrMeasurements));
-		filterFactories.add(new NoiseLevelDiscardFilter.Factory(frameType.samplerate, nrMeasurements));
-		filterFactories.add(new NoiseLevelDetectionFilter.Factory(frameType.samplerate, nrMeasurements));
-		RatedTimings ratedTimings = new RatedTimings(timings, frameType.samplerate);
+		filterFactories.add(new MaxRmsDetectionFilter.Factory(frameType.sampleRate, nrMeasurements));
+		filterFactories.add(new NoiseLevelDiscardFilter.Factory(frameType.sampleRate, nrMeasurements));
+		filterFactories.add(new NoiseLevelDetectionFilter.Factory(frameType.sampleRate, nrMeasurements));
+		RatedTimings ratedTimings = new RatedTimings(timings, frameType.sampleRate);
 		if (nrMeasurements.measureIrregularNoise != 0) {
-			filterFactories.add(new NoiseLevelMarkerFilter.Factory(frameType.samplerate, nrMeasurements));
+			filterFactories.add(new NoiseLevelMarkerFilter.Factory(frameType.sampleRate, nrMeasurements));
 			filterFactories.add(new IrregularNoiseDetectionFilter.Factory(nrMeasurements, ratedTimings));
 		}
 		
 		filterFactories.add(new NoiseReductionFilter.Factory(ratedTimings, nrDynamicsFactory, nrMeasurements));
-		this.set = new BandSplitFilterSet(buffers, frameType.samplerate, samples.length / frameType.channels, 25, filterFactories, crossoverInfo);
+		this.set = new BandSplitFilterSet(buffers, frameType.sampleRate, samples.length / frameType.channels, 25, filterFactories, crossoverInfo);
 	}	
 
 	public void filter() throws InterruptedException {
