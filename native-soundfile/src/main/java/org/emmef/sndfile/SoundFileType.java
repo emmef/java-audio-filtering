@@ -1,4 +1,4 @@
-package org.emmef.audio.nativesoundfile;
+package org.emmef.sndfile;
 
 import java.util.ArrayList;
 import java.util.Collection;

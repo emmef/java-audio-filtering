@@ -1,4 +1,4 @@
-package org.emmef.audio.nativesoundfile;
+package org.emmef.sndfile;
 
 class FormatInfo {
 	public int format;

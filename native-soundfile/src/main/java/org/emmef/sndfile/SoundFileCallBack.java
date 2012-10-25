@@ -1,6 +1,7 @@
-package org.emmef.audio.nativesoundfile;
+package org.emmef.sndfile;
 
 import java.io.IOException;
+
 
 public class SoundFileCallBack implements CallBack<double[]> {
 	private final SoundFile soundFile;

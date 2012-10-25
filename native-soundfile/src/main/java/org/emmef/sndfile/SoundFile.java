@@ -1,12 +1,12 @@
-package org.emmef.audio.nativesoundfile;
+package org.emmef.sndfile;
 
 import java.io.IOException;
 
 import org.emmef.audio.format.SoundMetrics;
 import org.emmef.audio.frame.Whence;
-import org.emmef.audio.nativesoundfile.SoundFileType.InfoStructure;
 import org.emmef.audio.nodes.SoundSourceAndSink;
 import org.emmef.config.nativeloader.NativeLoader;
+import org.emmef.sndfile.SoundFileType.InfoStructure;
 /**
  * Part of the SoundFile project 
  * @author michelf (original)

@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.logging.Level;
 
 import org.emmef.audio.frame.FrameType;
-import org.emmef.audio.nativesoundfile.LibSndFile;
-import org.emmef.audio.nativesoundfile.SndFileType;
 import org.emmef.audio.nodes.SoundSink;
 import org.emmef.audio.nodes.SoundSource;
 import org.emmef.audio.noisedetection.NrMeasurementSettings;
@@ -21,6 +19,8 @@ import org.emmef.config.options.Value;
 import org.emmef.config.program.Program;
 import org.emmef.config.program.ProgramUtils;
 import org.emmef.logging.Logger;
+import org.emmef.sndfile.LibSndFile;
+import org.emmef.sndfile.SndFileType;
 
 public class NoiseRemover implements Program {
 	private static final Logger logger = Logger.getDefault();
@@ -169,8 +169,11 @@ public class NoiseRemover implements Program {
 
 	public void run(String[] args) throws Exception {
 		Logger.getDefault().setLevel(Level.FINEST);
-		LibSndFile.readFrom("");
-		cmd.parse(args);
+		String[] fakeArguments = new String[] {
+			"/home/michel/Music/high-definition/Test_File_2_0_STEREO_PCM.wav",
+			"/tmp",
+			};
+		cmd.parse(fakeArguments);
 		logger.setLevel(Level.FINE);
 		final SoundSource<SndFileType> soundSource = LibSndFile.readFrom(inputFile.getValue().getAbsolutePath());
 		logger.config("Reading \"" + soundSource + "\"");
