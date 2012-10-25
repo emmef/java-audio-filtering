@@ -2,11 +2,10 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<artifactId>emmef-parent</artifactId>
-		<groupId>org.emmef</groupId>
+		<artifactId>emmef-audio-parent</artifactId>
+		<groupId>org.emmef.audio</groupId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-	<groupId>org.emmef.audio</groupId>
 	<artifactId>audiobuckets</artifactId>
   <name>Audio buckets</name>
   <description>An audio bucket is a fixed size number of (filtered) samples hat contains operations for audio processing</description>

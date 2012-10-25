@@ -1,29 +1,29 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <artifactId>emmef-parent</artifactId>
-    <groupId>org.emmef</groupId>
-    <version>0.0.1-SNAPSHOT</version>
-  </parent>
-  <groupId>org.emmef.audio</groupId>
-  <artifactId>denoizer</artifactId>
-  <dependencies>
-  	<dependency>
-  		<groupId>org.emmef.audio</groupId>
-  		<artifactId>noise</artifactId>
-  		<version>0.0.1-SNAPSHOT</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>org.emmef.config</groupId>
-  		<artifactId>cmnd-options</artifactId>
-  		<version>0.0.1-SNAPSHOT</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>org.emmef.audio</groupId>
-  		<artifactId>native-soundfile</artifactId>
-  		<version>0.0.1-SNAPSHOT</version>
-  	</dependency>
-  </dependencies>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<artifactId>emmef-audio-parent</artifactId>
+		<groupId>org.emmef.audio</groupId>
+		<version>0.0.1-SNAPSHOT</version>
+	</parent>
+	<artifactId>denoizer</artifactId>
+	<dependencies>
+		<dependency>
+			<groupId>org.emmef.audio</groupId>
+			<artifactId>noise</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.emmef.config</groupId>
+			<artifactId>cmnd-options</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.emmef.audio</groupId>
+			<artifactId>native-soundfile</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+	</dependencies>
 	<build>
 		<plugins>
 			<plugin>
