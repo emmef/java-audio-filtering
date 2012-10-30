@@ -6,7 +6,7 @@ public final class SoundMetrics extends FrameType {
 	private final long frameCount;
 	private final boolean seekable;
 	
-	public SoundMetrics(int channels, long frames, int samplerate, boolean seekable) {
+	public SoundMetrics(int channels, long frames, long samplerate, boolean seekable) {
 		super(channels, samplerate);
 		if (channels <= 0) {
 			throw new IllegalStateException("Number of channels cannot be 0");
@@ -22,17 +22,9 @@ public final class SoundMetrics extends FrameType {
 	public SoundMetrics withChannels(int alternativeChannels) {
 		return new SoundMetrics(alternativeChannels, frameCount, sampleRate, seekable);
 	}
-	
-	public int getChannels() {
-		return channels;
-	}
 
 	public long getFrames() {
 		return frameCount;
-	}
-
-	public int getSamplerate() {
-		return sampleRate;
 	}
 
 	public boolean isSeekable() {

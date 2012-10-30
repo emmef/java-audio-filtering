@@ -1,4 +1,4 @@
-package org.emmef.audio.format;
+package org.emmef.audio.format.conversion;
 
 public interface FormatConverter<P, I> {
 	P publish(I internalFormat);

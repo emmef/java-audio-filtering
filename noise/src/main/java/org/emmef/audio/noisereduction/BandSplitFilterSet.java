@@ -41,7 +41,7 @@ public class BandSplitFilterSet {
 	
 	private final ChainableFilter[][] filters;
 	private final int offset;
-	private final int samplerate;
+	private final long samplerate;
 	private final List<FilterFactory> factories;
 	private final int inPosition;
 	private final int outPosition;
@@ -51,7 +51,7 @@ public class BandSplitFilterSet {
 	private final List<Exception> exceptions = new CopyOnWriteArrayList<Exception>();
 	private final CrossoverInfo crossoverInfo;
 
-	public BandSplitFilterSet(BufferSet buffers, int samplerate, int frameCount, int bits, List<FilterFactory> factories, CrossoverInfo crossoverInfo) {
+	public BandSplitFilterSet(BufferSet buffers, long samplerate, int frameCount, int bits, List<FilterFactory> factories, CrossoverInfo crossoverInfo) {
 		if (buffers == null) {
 			throw new NullPointerException("buffers");
 		}

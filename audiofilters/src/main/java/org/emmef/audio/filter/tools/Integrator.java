@@ -21,15 +21,15 @@ public class Integrator implements Filter {
 		return 1.0 - Math.exp(-1.0 / characteristicSamples);
 	}
 
-	public static final double samples(int sampleRate, double time) {
+	public static final double samples(long sampleRate, double time) {
 		return time * sampleRate;
 	}
 	
-	public static Integrator of(int sampleRate, double characteristicSeconds) {
+	public static Integrator of(long sampleRate, double characteristicSeconds) {
 		return of(sampleRate, characteristicSeconds, 0.0);
 	}
 	
-	public static Integrator of(int sampleRate, double characteristicSeconds, double startValue) {
+	public static Integrator of(long sampleRate, double characteristicSeconds, double startValue) {
 		if (sampleRate < 1) {
 			throw new IllegalArgumentException("Samplerate must be at least 1");
 		}

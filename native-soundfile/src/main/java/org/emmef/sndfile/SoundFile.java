@@ -87,7 +87,7 @@ class SoundFile implements SoundSourceAndSink<SoundFileType> {
     		throw new IllegalArgumentException();
     	}
     	final long handle;
-    	InfoStructure info = new InfoStructure(type.getFormat(), formatInfo.channels, formatInfo.sampleRate); 
+    	InfoStructure info = new InfoStructure(type.getFormat(), formatInfo.channels, (int)formatInfo.sampleRate); 
     	synchronized (ioLock) {
     		handle = openWriteable(fileName, info);
 		}

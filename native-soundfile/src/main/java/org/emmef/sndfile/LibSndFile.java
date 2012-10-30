@@ -2,8 +2,8 @@ package org.emmef.sndfile;
 
 import java.io.IOException;
 
-import org.emmef.audio.format.FormatConverter;
 import org.emmef.audio.format.SoundMetrics;
+import org.emmef.audio.format.conversion.FormatConverter;
 import org.emmef.audio.nodes.SoundSink;
 import org.emmef.audio.nodes.SoundSource;
 import org.emmef.config.nativeloader.LoaderResult;

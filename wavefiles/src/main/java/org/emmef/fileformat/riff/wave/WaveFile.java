@@ -74,8 +74,17 @@ public class WaveFile {
 		channel.close();
 	}
 	
+	public RiffChunk getDataChunk() {
+		return dataChunk;
+	}
+	
 	public static void main(String[] args) throws FileNotFoundException, IOException {
-		WaveFile waveFile = new WaveFile(new File(args[0]), 1024);
+		String pathname = null;
+		if (args.length > 0) {
+			pathname = args[0];
+		}
+		
+		WaveFile waveFile = new WaveFile(new File(pathname), 1024);
 		
 		try {
 			System.out.println(waveFile.formatChunk.getStorageType());

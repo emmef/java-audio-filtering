@@ -83,8 +83,8 @@ final class SoundFileType {
     	return Collections.unmodifiableList(subFormats);
     }
     
-    public static boolean isValidFormat(int samplerate, int channels, int format) {
-    	return isValidFormat0(samplerate, channels, format);
+    public static boolean isValidFormat(long samplerate, int channels, int format) {
+    	return isValidFormat0((int)samplerate, channels, format);
     }
     
     public static MajorFormat getMajorFormat(int format) {
@@ -167,7 +167,7 @@ final class SoundFileType {
 	}
 	
 	public InfoStructure createInfoStructure() {
-		return new InfoStructure(getNativeFormat(majorFormat, subFormat), frameType.channels, frameType.sampleRate);
+		return new InfoStructure(getNativeFormat(majorFormat, subFormat), frameType.channels, (int)frameType.sampleRate);
 	}
 	
 	public static InfoStructure createEmptyInfoStructure() {
@@ -194,7 +194,7 @@ final class SoundFileType {
 		return frameType.channels;
 	}
 	
-	public final int getSampleRate() {
+	public final long getSampleRate() {
 		return frameType.sampleRate;
 	}
 	

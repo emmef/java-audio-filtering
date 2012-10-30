@@ -44,7 +44,7 @@ public class MaxRmsDetectionFilter implements ChainableFilter {
 	public static class Factory implements FilterFactory {
 		private final int bucketSize;
 
-		public Factory(int samplerate, NrMeasurementSettings nrMeasurements) {
+		public Factory(long samplerate, NrMeasurementSettings nrMeasurements) {
 			bucketSize = Math.max(1, (int)(0.5 + nrMeasurements.rmsWin * samplerate));
 		}
 
