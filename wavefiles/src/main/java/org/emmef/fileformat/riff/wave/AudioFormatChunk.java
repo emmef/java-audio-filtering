@@ -26,7 +26,7 @@ public class AudioFormatChunk extends RiffDataChunk {
 		}
 	}
 	
-	public FormatType getStorageType() {
+	public FormatType getFormatType() {
 		return FormatType.valueOf(getWordAt(OFFSET_FORMAT_TAG));
 	}
 	
@@ -79,7 +79,7 @@ public class AudioFormatChunk extends RiffDataChunk {
 		if (bytesPerFrame <= 0) {
 			throw new IllegalStateException("Illegal number of channels: " + channels);
 		}
-		return bytesPerFrame; 
+		return bytesPerFrame / channels; 
 	}
 
 	/**
@@ -117,6 +117,10 @@ public class AudioFormatChunk extends RiffDataChunk {
 		return getWordAt(OFFSET_EXTENDED_FORMAT_VALID_BITS);
 	}
 	
+	public boolean hasExtendedChannelMask() {
+		return getBuffer().length >= OFFSET_EXTENDED_FORMAT_SUB_FORMAT;
+	}
+	
 	public long getExtendedChannelMask() {
 		checkExtendedFormatAvailable();
 		return getWordAt(OFFSET_EXTENDED_FORMAT_CHANNEL_MASK);
@@ -126,7 +130,7 @@ public class AudioFormatChunk extends RiffDataChunk {
 		checkExtendedFormatAvailable();
 		return getWordAt(OFFSET_EXTENDED_FORMAT_SUB_FORMAT);
 	}
-
+	
 	private void checkExtendedFormatAvailable() {
 		if (getExtendedFormatSize() <=  0) {
 			throw new IllegalStateException("Have no extended information");

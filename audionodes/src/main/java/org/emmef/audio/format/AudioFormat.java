@@ -5,6 +5,7 @@ import static org.emmef.audio.format.AudioFormats.*;
 import java.util.Set;
 
 import org.emmef.audio.frame.FrameType;
+import org.emmef.audio.utils.Numbers;
 
 public class AudioFormat extends FrameType implements SampleType {
 	private final SampleFormat format;
@@ -45,6 +46,42 @@ public class AudioFormat extends FrameType implements SampleType {
 	@Override
 	public final double getValue0Dbf() {
 		return value0Dbf;
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder text = new StringBuilder(getClass().getSimpleName());
+		text.append('[');
+		SampleFormat sampleFormat = getSampleFormat();
+		int validBitsPerSample = getValidBitsPerSample();
+		text.append(validBitsPerSample).append("-bit ").append(sampleFormat).append(' ');
+		Numbers.appendNumber(text, getSampleRate(), ".", "e+", "", "Hz");
+		long mask = getLocationMask();
+		text.append(' ');
+		if (mask == 0) {
+			int ch = getChannels();
+			if (ch == 1) {
+				text.append("Mono");
+			}
+			else if (ch == 2) {
+				text.append("Stereo");
+			}
+			text.append(ch).append("-channel");
+		}
+		else {
+			text.append(SpeakerLocations.ofMask(mask).toString());
+		}
+		double value0Dbf2 = getValue0Dbf();
+		if (sampleFormat == SampleFormat.FLOAT && value0Dbf2 != 1.0) {
+			text.append(" scale=").append(value0Dbf2);
+		}
+		if (((validBitsPerSample + 7) >> 3) != getBytesPerSample()) {
+			text.append(" aligned=").append(getBytesPerSample());
+		}
+		
+		text.append(']');
+		// TODO Auto-generated method stub
+		return text.toString();
 	}
 
 	static class Builder implements AudioFormatChannelSetter, AudioFormatSampleRateSetter, AudioFormatBitDepthSetter {

@@ -8,6 +8,8 @@ import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.emmef.audio.format.AudioFormat;
+import org.emmef.fileformat.riff.AudioFactChunk;
 import org.emmef.fileformat.riff.RiffChunk;
 import org.emmef.fileformat.riff.RiffDataChunk;
 import org.emmef.fileformat.riff.RiffRootRecord;
@@ -16,12 +18,15 @@ import org.emmef.fileformat.riff.RiffUtils;
 public class WaveFile {
 	public static final String WAVE_FILE_FORMAT_IDENTIFIER = "WAVE";
 	public static final String WAVE_AUDIO_DATA_IDENTIFIER = "data";
+	public static final String WAVE_AUDIO_FACT_IDENTIFIER = "fact";
 	
 	private final byte[] buffer;
 	private final FileChannel channel;
 	private final List<RiffChunk> chunks = new ArrayList<>();
 	private final AudioFormatChunk formatChunk;
 	private final RiffChunk dataChunk;
+	private final RiffChunk factChunk;
+	private final AudioFormat audioFormat;
 	
 	public WaveFile(File file, int bufferSize) throws FileNotFoundException, IOException {
 		RiffUtils.checkNotNull(file, "file");
@@ -39,6 +44,7 @@ public class WaveFile {
 		}
 		
 		RiffChunk dataChunk = null;
+		RiffChunk factChunk = null;
 		AudioFormatChunk formatChunk = null;
 		long offset = 0;
 		while (dataChunk == null) {
@@ -52,6 +58,12 @@ public class WaveFile {
 					throw new IllegalStateException("Second audio format chunk found at file offset " + header.getAbsoluteOffset());
 				}
 				formatChunk = new AudioFormatChunk(header, RiffUtils.readChunkData(stream, header, 40, 40));
+			}
+			else if (AudioFactChunk.CHUNK_ID.equals(header.getIdentifier())) {
+				if (factChunk != null) {
+					throw new IllegalStateException("Second audio fact chunk found at file offset " + header.getAbsoluteOffset());
+				}
+				factChunk = new AudioFactChunk(header, RiffUtils.readChunkData(stream, header, 4, 40));
 			}
 			else {
 				chunks.add(new RiffDataChunk(header, RiffUtils.readChunkData(stream, header, 10240, 1024000)));
@@ -67,7 +79,9 @@ public class WaveFile {
 		
 		this.formatChunk = formatChunk;
 		this.dataChunk = dataChunk;
+		this.factChunk = factChunk;
 		this.channel = stream.getChannel();
+		this.audioFormat = AudioFormatChunks.fromChunks(formatChunk);
 	}
 	
 	public void close() throws IOException {
@@ -78,8 +92,12 @@ public class WaveFile {
 		return dataChunk;
 	}
 	
+	public AudioFormat getAudioFormat() {
+		return audioFormat;
+	}
+	
 	public static void main(String[] args) throws FileNotFoundException, IOException {
-		String pathname = null;
+		String pathname = "test.wav";
 		if (args.length > 0) {
 			pathname = args[0];
 		}
@@ -87,7 +105,7 @@ public class WaveFile {
 		WaveFile waveFile = new WaveFile(new File(pathname), 1024);
 		
 		try {
-			System.out.println(waveFile.formatChunk.getStorageType());
+			System.out.println(waveFile.getAudioFormat());
 		}
 		finally {
 			waveFile.close();

@@ -6,10 +6,10 @@ import java.util.Set;
 
 
 public final class AudioFormats {
+	public static final Set<SampleFormat> SUPPORTED_SAMPLE_FORMATS = Collections.unmodifiableSet(EnumSet.of(SampleFormat.FLOAT, SampleFormat.PCM));
 	public static final AudioFormat CD = pcm().channels(2).rate(44100).bitDepth(16);
 	public static final AudioFormat DVD_STEREO = pcm().channels(2).rate(4800).bitDepth(16);
 	
-	public static final Set<SampleFormat> SUPPORTED_SAMPLE_FORMATS = Collections.unmodifiableSet(EnumSet.of(SampleFormat.FLOAT, SampleFormat.PCM));
 	
 	public static AudioFormatChannelSetter builder(SampleFormat format) {
 		return new AudioFormat.Builder(checkFormat(format));
@@ -65,31 +65,26 @@ public final class AudioFormats {
 		if (format == null) {
 			throw new NullPointerException("Sample format type cannot be null");
 		}
-		if (SUPPORTED_SAMPLE_FORMATS.contains(format)) {
+		if (!SUPPORTED_SAMPLE_FORMATS.contains(format)) {
 			throw new IllegalArgumentException("Sample format " + format + " not supported. Supported are " + SUPPORTED_SAMPLE_FORMATS);
 		}
 		return format;
 	}
 
 	public static int getBytesPerSample(SampleFormat format, int bitsPerSample) {
-		int bytesPerSample = -1;
 		switch (format) {
 		case FLOAT:
 			if (bitsPerSample == 32 || bitsPerSample == 64) {
-				bytesPerSample = bitsPerSample >> 3;
+				return bitsPerSample >> 3;
 			}
-			else {
-				throw new IllegalArgumentException("For " + format + ", " + bitsPerSample + " bits per sample is illegal"); 
-			}
-			break;
+			throw new IllegalArgumentException("For " + format + ", " + bitsPerSample + " bits per sample is illegal"); 
 		case PCM:
-			if (bitsPerSample <= 24) {
-				bytesPerSample = (bitsPerSample + 7) >> 3;
+			if (bitsPerSample <= 32) {
+				return (bitsPerSample + 7) >> 3;
 			}
 			throw new IllegalArgumentException("For " + format + ", " + bitsPerSample + " bits per sample is illegal");
 		default:
 			throw new IllegalArgumentException("Unhandles sample format " + format);
 		}
-		return bytesPerSample;
 	}
 }

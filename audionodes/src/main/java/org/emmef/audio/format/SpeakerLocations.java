@@ -65,6 +65,24 @@ public class SpeakerLocations implements Set<SpeakerLocation>, Comparable<Speake
 		}
 	}
 	
+	public static String getNameFor(int numberOfChannels) {
+		checkChannels(numberOfChannels);
+		switch (numberOfChannels) {
+		case 1:
+			return NAMES.get(MONO);
+		case 2:
+			return NAMES.get(STEREO);
+		case 4:
+			return NAMES.get(QUADROPHONIC);
+		case 6:
+			return NAMES.get(SURROUND_5_1);
+		case 8:
+			return NAMES.get(SURROUND_7_1);
+		default:
+			throw new IllegalArgumentException("No constant for " + numberOfChannels + " channels");
+		}
+	}
+	
 	private final long mask;
 
 	private SpeakerLocations(long mask) {
