@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
+import org.emmef.audio.format.FrameMetrics;
 import org.emmef.audio.frame.FrameType;
 
 /**
@@ -178,7 +179,7 @@ final class SoundFileType {
 		return majorFormat.getFormat() | subFormat.getFormat() | endianNess;
 	}
 
-	public final FrameType getFrameType() {
+	public final FrameMetrics getFrameType() {
 		return frameType;
 	}
 

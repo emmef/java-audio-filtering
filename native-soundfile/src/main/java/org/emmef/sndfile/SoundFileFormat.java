@@ -1,6 +1,6 @@
 package org.emmef.sndfile;
 
-import org.emmef.audio.frame.FrameType;
+import org.emmef.audio.format.FrameMetrics;
 
 /**
  * Part of the SoundFile project 
@@ -11,15 +11,15 @@ import org.emmef.audio.frame.FrameType;
  */
 public class SoundFileFormat {
 	
-	private final FrameType frameType;
+	private final FrameMetrics frameType;
 	private final SoundFileType audioType;
 	
-	public SoundFileFormat(FrameType frameType, SoundFileType audioType) {
+	public SoundFileFormat(FrameMetrics frameType, SoundFileType audioType) {
 		this.frameType = frameType; 
 		this.audioType = audioType;
 	}
 	
-	public FrameType getFrameFormat() {
+	public FrameMetrics getFrameFormat() {
 		return frameType;
 	}
 	

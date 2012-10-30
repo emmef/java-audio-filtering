@@ -1,8 +1,9 @@
 package org.emmef.audio.frame;
 
+import org.emmef.audio.format.FrameMetrics;
 import org.emmef.audio.utils.Numbers;
 
-public class FrameType {
+public class FrameType implements FrameMetrics {
 	public final int channels;
 	public final long sampleRate;
 	
@@ -65,6 +66,16 @@ public class FrameType {
 			this.channels = channels;
 			this.sampleRate = rate;
 		}
+	}
+	
+	@Override
+	public final int getChannels() {
+		return channels;
+	}
+	
+	@Override
+	public final long getSampleRate() {
+		return sampleRate;
 	}
 	
 	public String toString() {

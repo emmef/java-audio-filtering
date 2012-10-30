@@ -1,4 +1,4 @@
-package org.emmef.fileformat.riff.wave.format;
+package org.emmef.audio.format;
 
 import java.util.EnumSet;
 import java.util.Set;

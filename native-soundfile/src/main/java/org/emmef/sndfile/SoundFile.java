@@ -69,7 +69,7 @@ class SoundFile implements SoundSourceAndSink<SoundFileType> {
         	this.fileName = fileName;
         	this.mode = Mode.READONLY;
         	this.format = new SoundFileType(info);
-        	this.metrics = new SoundMetrics(info.channels, info.frames, info.samplerate, info.seekable);
+        	this.metrics = null;//new SoundMetrics(info.channels, info.frames, info.samplerate, info.seekable);
         	finished = true;
     	}
     	finally {
@@ -87,7 +87,7 @@ class SoundFile implements SoundSourceAndSink<SoundFileType> {
     		throw new IllegalArgumentException();
     	}
     	final long handle;
-    	InfoStructure info = new InfoStructure(type.getFormat(), formatInfo.channels, (int)formatInfo.sampleRate); 
+    	InfoStructure info = new InfoStructure(type.getFormat(), formatInfo.getChannels(), (int)formatInfo.getSampleRate()); 
     	synchronized (ioLock) {
     		handle = openWriteable(fileName, info);
 		}
@@ -100,7 +100,7 @@ class SoundFile implements SoundSourceAndSink<SoundFileType> {
 	    	this.format = new SoundFileType(info);
 	    	this.fileName = fileName;
 	    	this.mode = Mode.WRITEONLY;
-        	this.metrics = new SoundMetrics(info.channels, info.frames, info.samplerate, info.seekable);
+        	this.metrics = null;//new SoundMetrics(info.channels, info.frames, info.samplerate, info.seekable);
 	    	finished = true;
     	}
     	finally {

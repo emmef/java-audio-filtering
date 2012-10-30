@@ -1,4 +1,4 @@
-package org.emmef.fileformat.riff.wave.format;
+package org.emmef.audio.format;
 
 public interface AudioFormatSampleRateSetter {
 	AudioFormatBitDepthSetter rate(long sampleRate);

@@ -1,4 +1,4 @@
-package org.emmef.fileformat.riff.wave.format;
+package org.emmef.audio.format;
 
 import java.util.Collections;
 import java.util.EnumSet;
@@ -6,8 +6,8 @@ import java.util.Set;
 
 
 public final class AudioFormats {
-	public static final AudioFormat CD = pcm().channels(2).rate(44100).validBits(16);
-	public static final AudioFormat DVD_STEREO = pcm().channels(2).rate(4800).validBits(16);
+	public static final AudioFormat CD = pcm().channels(2).rate(44100).bitDepth(16);
+	public static final AudioFormat DVD_STEREO = pcm().channels(2).rate(4800).bitDepth(16);
 	
 	public static final Set<SampleFormat> SUPPORTED_SAMPLE_FORMATS = Collections.unmodifiableSet(EnumSet.of(SampleFormat.FLOAT, SampleFormat.PCM));
 	

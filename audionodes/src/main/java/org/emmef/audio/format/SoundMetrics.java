@@ -2,31 +2,66 @@ package org.emmef.audio.format;
 
 import org.emmef.audio.frame.FrameType;
 
-public final class SoundMetrics extends FrameType {
+public final class SoundMetrics implements FrameMetrics, SampleType, StreamProperties {
+	private final AudioFormat audioFormat;
 	private final long frameCount;
 	private final boolean seekable;
 	
-	public SoundMetrics(int channels, long frames, long samplerate, boolean seekable) {
-		super(channels, samplerate);
-		if (channels <= 0) {
-			throw new IllegalStateException("Number of channels cannot be 0");
-		}
-		if (samplerate <= 0) {
-			throw new IllegalStateException("Samplerate must be positive");
-		}
-		
-		this.frameCount = frames;
+	public SoundMetrics(AudioFormat format, long frameCount, boolean seekable) {
+		this.audioFormat = format;
+		this.frameCount = frameCount;
 		this.seekable = seekable;
 	}
+
+	@Override
+	public final SampleFormat getSampleFormat() {
+		return audioFormat.getSampleFormat();
+	}
 	
-	public SoundMetrics withChannels(int alternativeChannels) {
-		return new SoundMetrics(alternativeChannels, frameCount, sampleRate, seekable);
+	public final AudioFormat getAudioFormat() {
+		return audioFormat;
+	}
+	
+	public final FrameType getFrameType() {
+		return audioFormat;
+	}
+	
+	@Override
+	public final int getBytesPerSample() {
+		return audioFormat.getBytesPerSample();
 	}
 
+	@Override
+	public final int getValidBitsPerSample() {
+		return audioFormat.getValidBitsPerSample();
+	}
+
+	@Override
+	public final long getLocationMask() {
+		return audioFormat.getLocationMask();
+	}
+
+	@Override
+	public final double getValue0Dbf() {
+		return audioFormat.getValue0Dbf();
+	}
+
+	@Override
+	public final int getChannels() {
+		return audioFormat.getChannels();
+	}
+
+	@Override
+	public final long getSampleRate() {
+		return audioFormat.getSampleRate();
+	}
+	
+	@Override
 	public long getFrames() {
 		return frameCount;
 	}
 
+	@Override
 	public boolean isSeekable() {
 		return seekable;
 	}

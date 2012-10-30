@@ -196,7 +196,7 @@ public class NoiseRemover implements Program {
 
 	private void applyNoiseFilter(final SoundSource<?> soundSource, final SoundSink<?> soundSink) throws IOException, InterruptedException {
 		float[] samples;
-		final FrameType frameType = soundSource.getMetrics();
+		final FrameType frameType = soundSource.getMetrics().getAudioFormat();
 		final long frameCount = soundSource.getMetrics().getFrames();
 		logger.fine("Frames=%d; channels=%d", frameCount, frameType.channels);
 		

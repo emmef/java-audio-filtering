@@ -1,95 +1,50 @@
-package org.emmef.fileformat.riff.wave.format;
+package org.emmef.audio.format;
 
-import static org.emmef.fileformat.riff.wave.format.AudioFormats.checkFormat;
-import static org.emmef.fileformat.riff.wave.format.AudioFormats.checkLocations;
-import static org.emmef.fileformat.riff.wave.format.AudioFormats.checkSampleRate;
+import static org.emmef.audio.format.AudioFormats.*;
 
 import java.util.Set;
 
 import org.emmef.audio.frame.FrameType;
 
-public final class AudioFormat extends FrameType {
+public class AudioFormat extends FrameType implements SampleType {
 	private final SampleFormat format;
 	private final int bytesPerSample;
 	private final int bitsPerSample;
 	private final long locationMask;
+	private final double value0Dbf;
 
-	AudioFormat(SampleFormat format, long sampleRate, int channels, int bytesPerSample, int bitsPerSample, long locationMask) {
+	AudioFormat(SampleFormat format, long sampleRate, int channels, int bytesPerSample, int bitsPerSample, long locationMask, double value0Dbf) {
 		super(channels, sampleRate);
 		this.format = format;
 		this.bytesPerSample = bytesPerSample;
 		this.bitsPerSample = bitsPerSample;
 		this.locationMask = locationMask;
+		this.value0Dbf = value0Dbf;
 	}
 
-	/**
-	 * Returns the type of sample format, which can be floating point or PCM
-	 * (integers).
-	 * 
-	 * @return a non-{@code null} {@link SampleFormat}
-	 */
-	public SampleFormat getFormat() {
+	@Override
+	public final SampleFormat getSampleFormat() {
 		return format;
 	}
 
-	/**
-	 * Returns the sample rate (number of frames per second)
-	 * @return a positive number
-	 */
-	public long getSampleRate() {
-		return sampleRate;
-	}
-
-	/**
-	 * Returns the number of channels. 
-	 * <p>
-	 * Each frame consists of this number of samples.
-	 * @return a positive number
-	 */
-	public int getChannels() {
-		return channels;
-	}
-
-	/**
-	 * Returns the number of bytes that each sample takes up in storage.
-	 * <p>
-	 * This number is equal or bigger than eight times the number of valid bits
-	 * per sample as returned by {@link #getValidBitsPerSample()}.
-	 * 
-	 * @return a positive number
-	 */
-	public int getBytesPerSample() {
+	@Override
+	public final int getBytesPerSample() {
 		return bytesPerSample;
 	}
-
-	/**
-	 * Returns the valid number of bits per sample.
-	 * <p>
-	 * The valid number of bits doesn't have to be a multiple of 8. However, for
-	 * efficiency reasons, containers round the number of bits up to the next
-	 * byte or even more. For example, a 20-bit sample is stored in 3 or even 4
-	 * bytes.
-	 * <p>
-	 * Different {@link SampleFormat}s can allow different sets of valid bits.
-	 * Floats, for instance, only allow 32 or 64 bits, while PCM allows
-	 * everything up to 32 bits.
-	 * 
-	 * @return a positive number
-	 */
-	public int getValidBitsPerSample() {
+	
+	@Override
+	public final int getValidBitsPerSample() {
 		return bitsPerSample;
 	}
 
-	/**
-	 * Returns a bit-mask of speaker locations for each frame.
-	 * <p>
-	 * The number of speaker locations is always equal to the number of
-	 * channels.
-	 * 
-	 * @return a positive number.
-	 */
-	public long getLocationMask() {
+	@Override
+	public final long getLocationMask() {
 		return locationMask;
+	}
+	
+	@Override
+	public final double getValue0Dbf() {
+		return value0Dbf;
 	}
 
 	static class Builder implements AudioFormatChannelSetter, AudioFormatSampleRateSetter, AudioFormatBitDepthSetter {
@@ -99,17 +54,26 @@ public final class AudioFormat extends FrameType {
 		private int bytesPerSample;
 		private int bitsPerSample;
 		private long locationMask;
+		private double scale = -1.0;;
 
 		Builder(SampleFormat format) {
 			this.format = checkFormat(format);
 		}
 
 		@Override
-		public AudioFormat validBits(int validBitsPerSample) {
+		public AudioFormat bitDepth(int validBitsPerSample) {
 			bytesPerSample = AudioFormats.getBytesPerSample(format, validBitsPerSample);
 			bitsPerSample = validBitsPerSample;
+			if (scale < 0) {
+				if (format == SampleFormat.FLOAT) {
+					scale = 1.0;
+				}
+				else {
+					scale = 1L << (bitsPerSample >> 1) - 1;
+				}
+			}
 
-			return new AudioFormat(format, sampleRate, channels, bytesPerSample, bitsPerSample, locationMask);
+			return new AudioFormat(format, sampleRate, channels, bytesPerSample, bitsPerSample, locationMask, scale);
 		}
 
 		@Override
@@ -161,6 +125,22 @@ public final class AudioFormat extends FrameType {
 			SpeakerLocation.checkMask(mask);
 			this.channels = SpeakerLocation.getNumberOfChannels(mask);
 			this.locationMask = mask;
+			
+			return this;
+		}
+		
+		@Override
+		public AudioFormatBitDepthSetter set0DbfValue(double zeroDbSampleValue) {
+			if (zeroDbSampleValue < 1.0) {
+				throw new IllegalArgumentException("Zero dB value must positive");
+			}
+			if (format != SampleFormat.FLOAT) {
+				throw new IllegalStateException("Zero dB value can only be set for floating point samples");
+			}
+			if (scale >= 0) {
+				throw new IllegalStateException("Zero dB value already set to " + scale);
+			}
+			scale = zeroDbSampleValue;
 			
 			return this;
 		}

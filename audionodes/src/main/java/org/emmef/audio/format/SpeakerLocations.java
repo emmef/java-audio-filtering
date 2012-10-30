@@ -1,31 +1,27 @@
-package org.emmef.fileformat.riff.wave.format;
+package org.emmef.audio.format;
 
-import static org.emmef.fileformat.riff.wave.format.AudioFormats.checkChannels;
-import static org.emmef.fileformat.riff.wave.format.SpeakerLocation.*;
+import static org.emmef.audio.format.AudioFormats.checkChannels;
+import static org.emmef.audio.format.SpeakerLocation.*;
 
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
-public class SpeakerLocations implements Set<SpeakerLocation> {
-	private static final List<SpeakerLocations> CACHED_LOCATIONS = new ArrayList<>();
+public class SpeakerLocations implements Set<SpeakerLocation>, Comparable<SpeakerLocations> {
 	private static final SpeakerLocation[] LOCATION_VALUES = SpeakerLocation.values();
+	private static final SortedMap<SpeakerLocations, String> NAMES = new TreeMap<>(); 
 	
-	public static final SpeakerLocations MONO = addCached(new SpeakerLocations("Mono", FC));
-	public static final SpeakerLocations STEREO = addCached(new SpeakerLocations("Stereo", FL, FR));
-	public static final SpeakerLocations QUADROPHONIC = addCached(new SpeakerLocations("Quadrophonic", FL, FR, BL, BR));
-	public static final SpeakerLocations SURROUND = addCached(new SpeakerLocations("Surround", FL, FR, FC, BC));
-	public static final SpeakerLocations SURROUND_5_1 = addCached(new SpeakerLocations("5.1", FL, FR, FC, LF, BL, BR));
-	public static final SpeakerLocations SURROUND_7_1 = addCached(new SpeakerLocations("7.1", FL, FR, FC, LF, BL, BR, FLC, FRC));
-	
-	private static final long[] CACHED_MASKS = createCachedMasks(CACHED_LOCATIONS);
+	public static final SpeakerLocations MONO = linkToName(new SpeakerLocations(FC), "Mono");
+	public static final SpeakerLocations STEREO = linkToName(new SpeakerLocations(FL, FR), "Stereo");
+	public static final SpeakerLocations QUADROPHONIC = linkToName(new SpeakerLocations(FL, FR, BL, BR), "Quadrophonic");
+	public static final SpeakerLocations SURROUND = linkToName(new SpeakerLocations(FL, FR, FC, BC), "Surround");
+	public static final SpeakerLocations SURROUND_5_1 = linkToName(new SpeakerLocations(FL, FR, FC, LF, BL, BR), "5.1");
+	public static final SpeakerLocations SURROUND_7_1 = linkToName(new SpeakerLocations(FL, FR, FC, LF, BL, BR, FLC, FRC), "7.1");
 	
 	public static SpeakerLocations of(SpeakerLocation... locations) {
 		if (locations == null) {
@@ -43,12 +39,12 @@ public class SpeakerLocations implements Set<SpeakerLocation> {
 			mask |= location.getBitMask();
 		}
 		
-		return createOrGetCached(mask);
+		return new SpeakerLocations(mask);
 	}
 	
 	public static SpeakerLocations ofMask(long mask) {
 		SpeakerLocation.checkMask(mask);
-		return createOrGetCached(mask);
+		return new SpeakerLocations(mask);
 	}
 	
 	public static SpeakerLocations ofChannels(int numberOfChannels) {
@@ -68,35 +64,21 @@ public class SpeakerLocations implements Set<SpeakerLocation> {
 			throw new IllegalArgumentException("No constant for " + numberOfChannels + " channels");
 		}
 	}
-
-	private static SpeakerLocations createOrGetCached(long mask) {
-		int index = Arrays.binarySearch(CACHED_MASKS, mask);
-		if (index >= 0) {
-			return CACHED_LOCATIONS.get(index);
-		}
-		return new SpeakerLocations(mask);
-	}
 	
 	private final long mask;
-	private final int channels;
-	private final String name;
 
 	private SpeakerLocations(long mask) {
-		this.name = null;
 		this.mask = mask;
-		this.channels = Long.bitCount(mask);
 	}
 
-	private SpeakerLocations(String name, SpeakerLocation... locations) {
+	private SpeakerLocations(SpeakerLocation... locations) {
 		long value = calculateMaskUnchecked(locations);
-		this.name = name;
 		this.mask = value;
-		this.channels = Long.bitCount(mask);
 	}
 	
 	@Override
 	public int size() {
-		return channels;
+		return getChannels();
 	}
 	
 	public long getMask() {
@@ -105,7 +87,7 @@ public class SpeakerLocations implements Set<SpeakerLocation> {
 
 	@Override
 	public boolean isEmpty() {
-		return channels == 0;
+		return mask == 0;
 	}
 
 	@Override
@@ -123,13 +105,18 @@ public class SpeakerLocations implements Set<SpeakerLocation> {
 
 	@Override
 	public Object[] toArray() {
-		return fillArray(new Object[channels]);
+		return fillArray(new Object[getChannels()]);
 	}
 
+	public final int getChannels() {
+		return Long.bitCount(mask);
+	}
+	
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T[] toArray(T[] a) {
 		T[] result;
+		int channels = getChannels();
 		if (a == null || a.length < channels) {
 			result = (T[]) Array.newInstance(SpeakerLocation.class, channels);
 		} else {
@@ -192,7 +179,39 @@ public class SpeakerLocations implements Set<SpeakerLocation> {
 
 		return true;
 	}
+	
+	@Override
+	public int compareTo(SpeakerLocations o) {
+		return Long.compare(mask, o.mask);
+	}
+	
+	@Override
+	public int hashCode() {
+		return 31 + (int) (mask ^ (mask >>> 32));
+	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null || getClass() != obj.getClass()) {
+			return false;
+		}
+		
+		return mask == ((SpeakerLocations) obj).mask;
+	}
+	
+//	
+//	@Override
+//	public int hashCode() {
+//		
+//		int hash = getClass().hashCode();
+//		hash *= 31;
+//		hash += (int)(mask ^ (mask >>> 32)); 
+//				
+//	}
+	
 	@Override
 	public boolean addAll(Collection<? extends SpeakerLocation> c) {
 		throw new UnsupportedOperationException();
@@ -215,10 +234,11 @@ public class SpeakerLocations implements Set<SpeakerLocation> {
 	
 	@Override
 	public String toString() {
+		String name = NAMES.get(this);
 		if (name != null) {
 			return name;
 		}
-		StringBuilder builder = new StringBuilder(2 + channels * 5);
+		StringBuilder builder = new StringBuilder(2 + getChannels() * 5);
 		builder.append('[');
 		boolean first = true;
 		for (SpeakerLocation location : LOCATION_VALUES) {
@@ -244,41 +264,13 @@ public class SpeakerLocations implements Set<SpeakerLocation> {
 		return value;
 	}
 	
-	private static SpeakerLocations addCached(SpeakerLocations locations) {
-		int index = Collections.binarySearch(CACHED_LOCATIONS, locations, SpeakerLocationComparator.INSTANCE);
-		if (index >= 0) {
-			return CACHED_LOCATIONS.get(index);
+	private static SpeakerLocations linkToName(SpeakerLocations locations, String name) {
+		String found = NAMES.get(locations);
+		if (found == null) {
+			NAMES.put(locations, name);
 		}
-
-		int insertionPoint = -1 - index;
-		CACHED_LOCATIONS.add(insertionPoint, locations);
 		
 		return locations;
-	}
-	
-	private static long[] createCachedMasks(List<SpeakerLocations> cachedLocations) {
-		long[] result = new long[cachedLocations.size()];
-		
-		for (int i = 0; i < cachedLocations.size(); i++) {
-			result[i] = cachedLocations.get(i).getMask();
-		}
-		
-		return result;
-	}
-	
-	private static final class SpeakerLocationComparator implements Comparator<SpeakerLocations> {
-		static final Comparator<SpeakerLocations> INSTANCE = new SpeakerLocationComparator();
-
-		@Override
-		public int compare(SpeakerLocations o1, SpeakerLocations o2) {
-			if (o1.mask > o2.mask) {
-				return 1;
-			}
-			if (o1.mask < o2.mask) {
-				return -1;
-			}
-			return 0;
-		}
 	}
 
 	private static final class LocationIterator implements Iterator<SpeakerLocation> {
