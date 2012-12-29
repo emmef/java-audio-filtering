@@ -30,12 +30,13 @@ public class Terts {
 			walk *= TERTZ;
 		}
 		StringBuilder text = new StringBuilder();
-		Formatter f = new Formatter(text);
-		text.append("Frequencies:");
-		for (final Double value : values) {
-			f.format(" %1.0f", value);
+		try (Formatter f = new Formatter(text)) {
+			text.append("Frequencies:");
+			for (final Double value : values) {
+				f.format(" %1.0f", value);
+			}
+			f.flush();
+			System.out.println(text);
 		}
-		f.flush();
-		System.out.println(text);
 	}
 }

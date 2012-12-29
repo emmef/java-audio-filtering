@@ -31,13 +31,15 @@ public class NrMeasurementSettings {
 	@Override
 	public String toString() {
 		StringBuilder output = new StringBuilder("Noise measurement parameters\n");
-		Formatter f = new Formatter(output);
-		
-		f.format(" %-25s: %ddB\n", "Minimum accepted S/N ratio", minSnRatioDb);
-		f.format(" %-25s: %ddB\n", "Maximum accepted S/N ratio", maxSnRatioDb);
-		f.format(" %-25s: Max-RMS=%1.3fs; Noise=%1.3fs; Skip(not accepte)=%1.3fs\n", "Window sizes", rmsWin, noiseWin, skipWin);
-		f.format(" %-25s: From start=%1.3fs); from end=%1.3fs\n", "Skip seconds", skipStartSecs, skipEndSecs);
-		f.format(" %-25s: %d", "Irregular noise option", measureIrregularNoise);
-		return output.toString();
+		try (Formatter f = new Formatter(output)) {
+			f.format(" %-25s: %ddB\n", "Minimum accepted S/N ratio", minSnRatioDb);
+			f.format(" %-25s: %ddB\n", "Maximum accepted S/N ratio", maxSnRatioDb);
+			f.format(" %-25s: Max-RMS=%1.3fs; Noise=%1.3fs; Skip(not accepte)=%1.3fs\n", "Window sizes", rmsWin, noiseWin, skipWin);
+			f.format(" %-25s: From start=%1.3fs); from end=%1.3fs\n", "Skip seconds", skipStartSecs, skipEndSecs);
+			f.format(" %-25s: %d", "Irregular noise option", measureIrregularNoise);
+			f.flush();
+			
+			return output.toString();
+		}
 	}
 }
