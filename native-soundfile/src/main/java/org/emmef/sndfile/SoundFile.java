@@ -2,19 +2,20 @@ package org.emmef.sndfile;
 
 import java.io.IOException;
 
+import org.emmef.audio.format.AudioFormat;
 import org.emmef.audio.format.SoundMetrics;
 import org.emmef.audio.frame.Whence;
 import org.emmef.audio.nodes.SoundSourceAndSink;
 import org.emmef.config.nativeloader.NativeLoader;
 import org.emmef.sndfile.SoundFileType.InfoStructure;
 /**
- * Part of the SoundFile project 
+ * Part of the SoundFile project
  * @author michelf (original)
  * Created Aug 18, 2004
  * @author $Author: michelf $ (last modified)
  * $Revision: 1.3 $
  */
-class SoundFile implements SoundSourceAndSink<SoundFileType> {
+class SoundFile implements SoundSourceAndSink {
 	final static int WHENCE_SET = 1;
 	final static int WHENCE_CURRENT = 2;
 	final static int WHENCE_FROM_END = 3;
@@ -22,10 +23,10 @@ class SoundFile implements SoundSourceAndSink<SoundFileType> {
 	
 	public enum Mode { READONLY, WRITEONLY };
 
-	public enum NativeWhence { 
+	public enum NativeWhence {
 		SET(SoundFile.WHENCE_SET), CURRENT(SoundFile.WHENCE_CURRENT), END(SoundFile.WHENCE_FROM_END);
 		
-		public final int value; 
+		public final int value;
 		
 		private NativeWhence(int value) {
 			this.value = value;
@@ -42,7 +43,7 @@ class SoundFile implements SoundSourceAndSink<SoundFileType> {
 			}
 			throw new IllegalArgumentException("Invalid argument for seek-whence: " + whence);
 		}
-	}	
+	}
 	private final SoundFileType format;
 	private final SoundMetrics metrics;
 	private final long handle;
@@ -67,9 +68,10 @@ class SoundFile implements SoundSourceAndSink<SoundFileType> {
     		
         	this.handle = handle;
         	this.fileName = fileName;
-        	this.mode = Mode.READONLY;
-        	this.format = new SoundFileType(info);
-        	this.metrics = null;//new SoundMetrics(info.channels, info.frames, info.samplerate, info.seekable);
+        	mode = Mode.READONLY;
+        	format = new SoundFileType(info);
+        	AudioFormat audioFormat = format.createAudioFormat();
+			metrics = new SoundMetrics(audioFormat, info.frames, info.seekable);
         	finished = true;
     	}
     	finally {
@@ -87,20 +89,22 @@ class SoundFile implements SoundSourceAndSink<SoundFileType> {
     		throw new IllegalArgumentException();
     	}
     	final long handle;
-    	InfoStructure info = new InfoStructure(type.getFormat(), formatInfo.getChannels(), (int)formatInfo.getSampleRate()); 
+    	InfoStructure info = new InfoStructure(type.getFormat(), formatInfo.getChannels(), (int)formatInfo.getSampleRate());
     	synchronized (ioLock) {
     		handle = openWriteable(fileName, info);
 		}
     	boolean finished = false;
     	if (handle == 0) {
     		throw new IllegalStateException("Invalid file descriptor");
-    	} 
+    	}
     	try {
 	    	this.handle = handle;
-	    	this.format = new SoundFileType(info);
+	    	format = new SoundFileType(info);
 	    	this.fileName = fileName;
-	    	this.mode = Mode.WRITEONLY;
-        	this.metrics = null;//new SoundMetrics(info.channels, info.frames, info.samplerate, info.seekable);
+	    	mode = Mode.WRITEONLY;
+	    	
+        	AudioFormat audioFormat = format.createAudioFormat();
+			metrics = new SoundMetrics(audioFormat, info.frames, info.seekable);
 	    	finished = true;
     	}
     	finally {
@@ -189,7 +193,7 @@ class SoundFile implements SoundSourceAndSink<SoundFileType> {
     	synchronized (ioLock) {
     		return writeFloat(handle, buffer, format.getChannels(), frameCount);
 		}
-    } 
+    }
     
     @Override
     public long seekFrame(long framePosition, Whence whence) throws IOException {

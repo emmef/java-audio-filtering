@@ -4,11 +4,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
+import org.emmef.audio.format.AudioFormat;
 import org.emmef.audio.format.FrameMetrics;
 import org.emmef.audio.frame.FrameType;
 
 /**
- * Part of the SoundFile project 
+ * Part of the SoundFile project
  * @author michelf (original)
  * Created Aug 18, 2004
  * @author $Author: michelf $ (last modified)
@@ -54,7 +55,7 @@ final class SoundFileType {
     public final static int FORMAT_DWVW_24      = 0x00000042;
     public final static int FORMAT_DWVW_N       = 0x00000043;
 
-	// endian-ness	
+	// endian-ness
 	public final static int ENDIAN_FILE         = 0x00000000;
 	public final static int ENDIAN_LITTLE       = 0x10000000;
 	public final static int ENDIAN_BIG          = 0x20000000;
@@ -62,7 +63,7 @@ final class SoundFileType {
 
     private static final ArrayList<MajorFormat> majorFormats = new ArrayList<MajorFormat>();
     private static final ArrayList<SubFormat> subFormats = new ArrayList<SubFormat>();
-    private static final String libraryVersion; 
+    private static final String libraryVersion;
 	
     public static String getLibraryVersion() {
     	return libraryVersion;
@@ -120,7 +121,7 @@ final class SoundFileType {
 
 	private static native boolean isValidFormat0(int samplerate, int channels, int format);
 	private static native String getSndFileVersion0();
-	private static native int getMajorFormatCount0(); 
+	private static native int getMajorFormatCount0();
 	private static native boolean getMajorFormatInfo0(int index, FormatInfo info);
 	private static native int getSubFormatCount0();
 	private static native boolean getSubFormatInfo0(int index, FormatInfo info);
@@ -157,10 +158,10 @@ final class SoundFileType {
 	}
 	
 	public SoundFileType(int format, int channels, int samplerate) {
-		this.frameType = new FrameType(channels, samplerate);
-		this.majorFormat = getMajorFormat(format);
-		this.subFormat = getSubFormat(format);
-		this.endianNess = getEndianNess(format);
+		frameType = new FrameType(channels, samplerate);
+		majorFormat = getMajorFormat(format);
+		subFormat = getSubFormat(format);
+		endianNess = getEndianNess(format);
 	}
 	
 	public SoundFileType(InfoStructure info) {
@@ -199,8 +200,13 @@ final class SoundFileType {
 		return frameType.sampleRate;
 	}
 	
+	@Override
 	public final String toString() {
-		return getClass().getSimpleName() + "[" + majorFormat.getName() + "; " + subFormat.getName() + "; " + frameType + "]"; 
+		return getClass().getSimpleName() + "[" + majorFormat.getName() + "; " + subFormat.getName() + "; " + frameType + "]";
+	}
+	
+	public AudioFormat createAudioFormat() {
+		return subFormat.createAudioFormat(frameType.channels, frameType.sampleRate);
 	}
 	
 	public static class InfoStructure {
@@ -234,7 +240,7 @@ final class SoundFileType {
            		majorFormats.add(new MajorFormat(info));
         	}
        	}
-       	int subFormatCount = getSubFormatCount0(); 
+       	int subFormatCount = getSubFormatCount0();
        	for (int i = 0; i < subFormatCount; i++) {
         	FormatInfo info = new FormatInfo();
         	if (getSubFormatInfo0(i, info)) {

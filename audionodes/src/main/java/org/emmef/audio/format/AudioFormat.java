@@ -5,7 +5,7 @@ import static org.emmef.audio.format.AudioFormats.*;
 import java.util.Set;
 
 import org.emmef.audio.frame.FrameType;
-import org.emmef.audio.utils.Numbers;
+import org.emmef.audio.utils.NumberFormats;
 
 public class AudioFormat extends FrameType implements SampleType {
 	private final SampleFormat format;
@@ -55,7 +55,7 @@ public class AudioFormat extends FrameType implements SampleType {
 		SampleFormat sampleFormat = getSampleFormat();
 		int validBitsPerSample = getValidBitsPerSample();
 		text.append(validBitsPerSample).append("-bit ").append(sampleFormat).append(' ');
-		Numbers.appendNumber(text, getSampleRate(), ".", "e+", "", "Hz");
+		NumberFormats.appendEngineerNumber(text, getSampleRate(), ".", "e+", "", "Hz");
 		long mask = getLocationMask();
 		text.append(' ');
 		if (mask == 0) {

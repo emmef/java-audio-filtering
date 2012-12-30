@@ -23,16 +23,16 @@ public class LibSndFile {
 	};
 
 
-	public static final SoundSource<SndFileType> readFrom(String fileName) throws IOException {
+	public static final SoundSource readFrom(String fileName) throws IOException {
 		ensureLibraryLoaded();
 		
 		return NodeDelegates.delegateSource(new SoundFile(fileName), CONVERTER);
 	}
 	
-	public static final SoundSink<SndFileType> writeTo(String fileName, SoundMetrics metrics, SndFileType type) throws IOException {
+	public static final SoundSink writeTo(String fileName, SoundMetrics metrics, Object metaData) throws IOException {
 		ensureLibraryLoaded();
 		
-		return NodeDelegates.delegateSink(new SoundFile(fileName, metrics, CONVERTER.intern(type)), CONVERTER);
+		return NodeDelegates.delegateSink(new SoundFile(fileName, metrics, CONVERTER.intern((SndFileType)metaData)), CONVERTER);
 	}
 	
 	

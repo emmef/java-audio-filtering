@@ -1,6 +1,6 @@
 package org.emmef.audio.nodes;
 
 
-public interface SoundSourceAndSink<T> extends SoundSource<T>, SoundSink<T> {
+public interface SoundSourceAndSink extends SoundSource, SoundSink {
 	// combining interface
 }

@@ -1,7 +1,7 @@
 package org.emmef.audio.frame;
 
 import org.emmef.audio.format.FrameMetrics;
-import org.emmef.audio.utils.Numbers;
+import org.emmef.audio.utils.NumberFormats;
 
 public class FrameType implements FrameMetrics {
 	public final int channels;
@@ -24,7 +24,7 @@ public class FrameType implements FrameMetrics {
 	}
 
 	public static String sampleRateToString(long number, String decimalPoint, String powerPrefix, String separator, String unit) {
-		return Numbers.appendNumber(new StringBuilder(), number, decimalPoint, powerPrefix, separator, unit).toString();
+		return NumberFormats.appendEngineerNumber(new StringBuilder(), number, decimalPoint, powerPrefix, separator, unit).toString();
 	}
 
 	public static void main(String[] args) {

@@ -1,8 +1,8 @@
 package org.emmef.audio.utils;
 
-public class Numbers {
+public class NumberFormats {
 
-	public static StringBuilder appendNumber(StringBuilder text, long number, String decimalPoint, String powerPrefix, String separator, String unit) {
+	public static StringBuilder appendEngineerNumber(StringBuilder text, long number, String decimalPoint, String powerPrefix, String separator, String unit) {
 		StringBuilder builder = text != null ? text : new StringBuilder();
 		String units = "kMG";
 		long nextPower = 1000;

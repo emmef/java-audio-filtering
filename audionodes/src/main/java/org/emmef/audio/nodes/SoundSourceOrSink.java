@@ -5,9 +5,9 @@ import java.io.IOException;
 import org.emmef.audio.format.SoundMetrics;
 import org.emmef.audio.frame.Whence;
 
-public interface SoundSourceOrSink<T> {
+public interface SoundSourceOrSink {
 	SoundMetrics getMetrics();
-	T getMetaData();
+	Object getMetaData();
 	
 	long seekFrame(long framePosition, Whence whence) throws IOException;
 	void close() throws IOException;

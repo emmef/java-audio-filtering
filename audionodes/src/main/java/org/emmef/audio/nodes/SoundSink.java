@@ -2,7 +2,7 @@ package org.emmef.audio.nodes;
 
 import java.io.IOException;
 
-public interface SoundSink<T> extends SoundSourceOrSink<T> {
+public interface SoundSink extends SoundSourceOrSink {
 
 	long writeFrames(double[] buffer) throws IOException;
 
