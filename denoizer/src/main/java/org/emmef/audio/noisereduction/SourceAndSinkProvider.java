@@ -5,7 +5,7 @@ import java.net.URI;
 import org.emmef.audio.format.AudioFormat;
 import org.emmef.audio.nodes.SoundSink;
 import org.emmef.audio.nodes.SoundSource;
-import org.emmef.servicemanager.SoundSourceAndSinkManager;
+import org.emmef.audio.servicemanager.SoundSourceAndSinkManager;
 
 public class SourceAndSinkProvider {
 	private static final SoundSourceAndSinkManager manager = SoundSourceAndSinkManager.getInstance();
@@ -29,6 +29,6 @@ public class SourceAndSinkProvider {
 	}
 
 	public static SoundSink createWithSameMetaData(SoundSource source, URI targetUri) {
-		return manager.createWithSameMetaData(source, targetUri);
+		return manager.createWithSameFormat(source, targetUri);
 	}
 }

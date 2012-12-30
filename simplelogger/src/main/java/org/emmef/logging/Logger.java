@@ -18,11 +18,13 @@ public class Logger {
 	private volatile Level level;
 	
 	private final ThreadLocal<StringBuilder> buffer = new ThreadLocal<StringBuilder>() {
+		@Override
 		protected StringBuilder initialValue() {
 			return new StringBuilder(100);
 		}
 	};
 	private final ThreadLocal<SimpleDateFormat> dateFormat = new ThreadLocal<SimpleDateFormat>() {
+		@Override
 		protected SimpleDateFormat initialValue() {
 			return new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss.SSS");
 		}
@@ -37,7 +39,7 @@ public class Logger {
 		catch (IOException e) {
 			// ignore
 		}
-		this.printStream = pStream;
+		printStream = pStream;
 		this.level = level;
 	}
 	
@@ -159,6 +161,6 @@ public class Logger {
 	}
 
 	private boolean skipLog(Level finest) {
-		return finest.intValue() < level.intValue();
+		return finest.intValue() >= level.intValue();
 	}
 }

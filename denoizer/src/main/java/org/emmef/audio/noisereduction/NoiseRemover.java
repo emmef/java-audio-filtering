@@ -24,6 +24,10 @@ import org.emmef.logging.Logger;
 public class NoiseRemover implements Program {
 	private static final Logger logger = Logger.getDefault();
 	
+	static {
+		Logger.getDefault().setLevel(Level.FINEST);
+	}
+	
 	Builder cmd = Options.create("NoiseRemover");
 	private final SwitchBuilder noiseMeasurement =
 		cmd.optional("-n", "--noise-measurement").describedBy("Describes how noise is measured");
@@ -168,11 +172,14 @@ public class NoiseRemover implements Program {
 
 	@Override
 	public void run(String[] args) throws Exception {
-		Logger.getDefault().setLevel(Level.FINEST);
+//		String[] fakeArguments = new String[] {
+//			"/home/michel/Music/high-definition/Test_File_2_0_STEREO_PCM.wav",
+//			"/tmp",
+//			};
 		String[] fakeArguments = new String[] {
-			"/home/michel/Music/high-definition/Test_File_2_0_STEREO_PCM.wav",
-			"/tmp",
-			};
+				"/tmp/PortoBottleOpening.jpg",
+				"/tmp",
+		};
 		cmd.parse(fakeArguments);
 		logger.setLevel(Level.FINE);
 		

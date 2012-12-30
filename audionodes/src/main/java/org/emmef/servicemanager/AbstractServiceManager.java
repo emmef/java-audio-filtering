@@ -51,6 +51,10 @@ public abstract class AbstractServiceManager<T> {
 		addProviders(new SingleElementIterator(provider));
 	}
 	
+	public Class<T> getClassToProvide() {
+		return classToProvide;
+	}
+	
 	private void addProviders(Iterator<T> providers) {
 		if (!providers.hasNext()) {
 			return;

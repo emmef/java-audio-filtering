@@ -1,4 +1,4 @@
-package org.emmef.servicemanager;
+package org.emmef.audio.servicemanager;
 
 import java.net.URI;
 import java.util.List;
@@ -6,9 +6,13 @@ import java.util.List;
 import org.emmef.audio.format.AudioFormat;
 import org.emmef.audio.nodes.SoundSink;
 import org.emmef.audio.nodes.SoundSource;
+import org.emmef.logging.Logger;
+import org.emmef.servicemanager.AbstractServiceManager;
+import org.emmef.servicemanager.ProviderVisitor;
 import org.emmef.servicemanager.ProviderVisitor.VisitState;
 
 public class SoundSourceAndSinkManager extends AbstractServiceManager<SoundSourceAndSinkProvider> implements SoundSourceAndSinkProvider {
+	public static final Logger log = Logger.getDefault();
 	public static final SoundSourceAndSinkManager instance = new SoundSourceAndSinkManager();
 	
 	public SoundSourceAndSinkManager() {
@@ -40,11 +44,11 @@ public class SoundSourceAndSinkManager extends AbstractServiceManager<SoundSourc
 	}
 
 	@Override
-	public SoundSink createWithSameMetaData(SoundSource source, URI targetUri) {
+	public SoundSink createWithSameFormat(SoundSource source, URI targetUri) {
 		return visit(targetUri, source, new Functor<SoundSource, SoundSink>() {
 			@Override
 			public SoundSink get(URI uri, SoundSourceAndSinkProvider soundSourceAndSinkProvider, SoundSource source) {
-				return soundSourceAndSinkProvider.createWithSameMetaData(source, uri);
+				return soundSourceAndSinkProvider.createWithSameFormat(source, uri);
 			}
 		});
 	}
@@ -56,8 +60,9 @@ public class SoundSourceAndSinkManager extends AbstractServiceManager<SoundSourc
 
 			@Override
 			public org.emmef.servicemanager.ProviderVisitor.VisitState visit(List<SoundSourceAndSinkProvider> list) {
+				text.append(SoundSourceAndSinkManager.this.getClass().getSimpleName() + ": providers for interface " + getClassToProvide() + ":\n");
 				for (SoundSourceAndSinkProvider provider : list) {
-					text.append(provider).append("\n");
+					text.append("- ").append(provider).append("\n");
 				}
 				return VisitState.SUCCESS;
 			}});
@@ -74,7 +79,17 @@ public class SoundSourceAndSinkManager extends AbstractServiceManager<SoundSourc
 			@Override
 			public ProviderVisitor.VisitState visit(List<SoundSourceAndSinkProvider> list) {
 				for (SoundSourceAndSinkProvider provider : list) {
-					result[0] = functor.get(uri, provider, argument);
+					try {
+						result[0] = functor.get(uri, provider, argument);
+					}
+					catch (UnsupportedOperationException e) {
+						log.debug(provider + ": " + e);
+						continue;
+					}
+					catch (SoundException e) {
+						log.debug(provider + ": " + e);
+						continue;
+					}
 					if (result[0] != null) {
 						return VisitState.SUCCESS;
 					}

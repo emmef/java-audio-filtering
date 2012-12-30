@@ -9,6 +9,13 @@
 		<groupId>org.emmef.audio</groupId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
+	<dependencies>
+		<dependency>
+			<groupId>org.emmef.config</groupId>
+			<artifactId>simplelogger</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+	</dependencies>
 	<build>
 		<plugins>
 			<plugin>
