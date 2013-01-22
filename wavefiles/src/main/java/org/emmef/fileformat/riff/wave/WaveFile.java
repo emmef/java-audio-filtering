@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +28,7 @@ public class WaveFile {
 	private final RiffChunk dataChunk;
 	private final RiffChunk factChunk;
 	private final AudioFormat audioFormat;
+	private final ByteBuffer byteBuffer;
 	
 	public WaveFile(File file, int bufferSize) throws FileNotFoundException, IOException {
 		RiffUtils.checkNotNull(file, "file");
@@ -36,7 +38,7 @@ public class WaveFile {
 		
 		FileInputStream stream = new FileInputStream(file);
 		
-		this.buffer = new byte[bufferSize];
+		buffer = new byte[bufferSize];
 		
 		RiffRootRecord root = RiffUtils.readRootUnsafe(stream, buffer);
 		if (!WAVE_FILE_FORMAT_IDENTIFIER.equals(root.getIdentifier())) {
@@ -51,6 +53,7 @@ public class WaveFile {
 			RiffChunk header = RiffUtils.readChunkHeader(stream, buffer, root, offset);
 			if (WAVE_AUDIO_DATA_IDENTIFIER.equals(header.getIdentifier())) {
 				dataChunk = header;
+				// currently, we are at the brink of reading actual data
 				break;
 			}
 			if (AudioFormatChunk.WAVE_AUDIO_FORMAT_IDENTIFIER.equals(header.getIdentifier())) {
@@ -80,8 +83,9 @@ public class WaveFile {
 		this.formatChunk = formatChunk;
 		this.dataChunk = dataChunk;
 		this.factChunk = factChunk;
-		this.channel = stream.getChannel();
-		this.audioFormat = AudioFormatChunks.fromChunks(formatChunk);
+		channel = stream.getChannel();
+		byteBuffer = ByteBuffer.wrap(buffer);
+		audioFormat = AudioFormatChunks.fromChunks(formatChunk);
 	}
 	
 	public void close() throws IOException {
