@@ -11,10 +11,10 @@ public class FrameReader {
 	private final int channels;
 	private final ByteBuffer buffer;
 	private final FileChannel source;
-	private final SampleReader reader;
+	private final SampleDecoder reader;
 	private final int frameBytes;
 
-	public FrameReader(int channels, int bufferSize, FileChannel source, SampleReader reader) {
+	public FrameReader(int channels, int bufferSize, FileChannel source, SampleDecoder reader) {
 		if (channels < 1) {
 			throw new IllegalArgumentException("Number of channels must be at least 1");
 		}
@@ -47,7 +47,7 @@ public class FrameReader {
 				}
 			}
 			for (int i = 0; i < channels; i++) {
-				target[position++] = reader.readDouble(buffer);
+				target[position++] = reader.decodeDouble(buffer);
 			}
 			
 			actualCount++;
@@ -76,7 +76,7 @@ public class FrameReader {
 				}
 			}
 			for (int i = 0; i < channels; i++) {
-				target[position++] = reader.readFloat(buffer);
+				target[position++] = reader.decodeFloat(buffer);
 			}
 			
 			actualCount++;
