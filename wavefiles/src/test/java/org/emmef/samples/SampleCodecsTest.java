@@ -16,31 +16,45 @@ public class SampleCodecsTest {
 	}
 	
 	@Test
-	public void testIdempotency() {
+	public void testIdempotencyForDoubles() {
 		for (SampleCodec codec : SampleCodecs.values()) {
-			testIdempotencyFor(codec);
+			CodecHelper helper = new CodecHelper(codec, true);
+			testIdempotencyFor(helper);
 		}
 	}
 	
 	@Test
-	public void testLimitingBehavior() {
+	public void testIdempotencyForFloats() {
 		for (SampleCodec codec : SampleCodecs.values()) {
-			testLimitingFor(codec);
+			CodecHelper helper = new CodecHelper(codec, false);
+			testIdempotencyFor(helper);
+		}
+	}
+	
+	@Test
+	public void testLimitingBehaviorForDouble() {
+		for (SampleCodec codec : SampleCodecs.values()) {
+			CodecHelper helper = new CodecHelper(codec, true);
+			testLimitingFor(helper);
+		}
+	}
+	
+	@Test
+	public void testLimitingBehaviorForFloats() {
+		for (SampleCodec codec : SampleCodecs.values()) {
+			CodecHelper helper = new CodecHelper(codec, false);
+			testLimitingFor(helper);
 		}
 	}
 
 
-	private void testIdempotencyFor(SampleCodec codec) {
+	private void testIdempotencyFor(CodecHelper helper) {
 		StringBuilder message = new StringBuilder();
 		
-		CodecHelper helper = new CodecHelper(codec);
 		long min = Integer.MIN_VALUE;
 		long max = -(long)Integer.MIN_VALUE;
 		long steps = Math.min(helper.bitsmax, -SampleScales.MIN_VALUE_24_BIT);
 		long step = Math.max(1, -(long)Integer.MIN_VALUE / steps);
-		
-		System.out.println("Testing " + codec + " in " + steps + " steps (size=" + -1.0 * step / Integer.MIN_VALUE + "; epsilon=" + helper.epsilon + ")");
-		
 		
 		for (long i = min ; i <= max; i += step) {
 			double input;
@@ -55,9 +69,9 @@ public class SampleCodecsTest {
 
 			if (Math.abs(delta) > helper.epsilon) {
 				message.setLength(0);
-				message.append("Codec=").append(codec).append("; input=").append(input).append("; encoded=");
+				message.append("Codec=").append(helper.codec).append("; input=").append(input).append("; encoded=");
 				helper.resetBuffer();
-				for (int bit = 0; bit < codec.bytesPerSample(); bit++) {
+				for (int bit = 0; bit < helper.codec.bytesPerSample(); bit++) {
 					int byteValue = helper.buffer.get();
 					message.append(HEXDIGITS.charAt(0xf & byteValue >>> 4));
 					message.append(HEXDIGITS.charAt(0xf & byteValue));
@@ -70,8 +84,7 @@ public class SampleCodecsTest {
 			}
 		}
 	}
-	private void testLimitingFor(SampleCodec codec) {
-		CodecHelper helper = new CodecHelper(codec);
+	private void testLimitingFor(CodecHelper helper) {
 		
 		double input = 0.1;
 		
@@ -121,9 +134,11 @@ public class SampleCodecsTest {
 		public final SampleCodec codec;
 		public final ByteBuffer buffer;
 		public final long bitsmax;
+		private final boolean useDoubles;
 		
-		public CodecHelper(SampleCodec codec) {
+		public CodecHelper(SampleCodec codec, boolean useDoubles) {
 			this.codec = codec;
+			this.useDoubles = useDoubles;
 			bitsmax = 1L << Math.min(3, codec.bytesPerSample())*8 - 1;
 			ceiling = codec.getStorage() == Storage.TWOS_COMPLEMENT ? 1.0 * (bitsmax - 1) / bitsmax : 1.0;
 			epsilon = 0.50001 / bitsmax; // double faults: to and fro
@@ -133,10 +148,18 @@ public class SampleCodecsTest {
 		}
 		
 		double encodeDecodeInSameSpace(double input) {
-			resetBuffer();
-			codec.encodeDouble(buffer, input);
-			resetBuffer();
-			return codec.decodeDouble(buffer);
+			if (useDoubles) {
+				resetBuffer();
+				codec.encodeDouble(buffer, input);
+				resetBuffer();
+				return codec.decodeDouble(buffer);
+			}
+			else {
+				resetBuffer();
+				codec.encodeFloat(buffer, (float)input);
+				resetBuffer();
+				return codec.decodeFloat(buffer);
+			}
 		}
 		
 		void resetBuffer() {
