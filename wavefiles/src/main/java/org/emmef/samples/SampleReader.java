@@ -152,15 +152,19 @@ public class SampleReader {
 		return Double.longBitsToDouble(read64BigEndian(buffer, offset));
 	}
 	
-	public static int ensureBufferOffsetAndCount(byte[] buffer, int offset, int count) {
-		if (hasRemaining(buffer, offset, count)) {
-			return offset;
-		}
-		throw new IllegalArgumentException("Offset (" + offset + ") + count(" + count + ") larger that buffer length (" + buffer.length + ")");
+	public static void checkRemaining(byte[] buffer, int offset, int count) {
+		checkRemaining(buffer.length, offset, count);
 	}
 	
-	public static boolean hasRemaining(byte[] buffer, int offset, int count) {
-		return offset + count <= buffer.length;
+	public static void checkRemaining(int limit, int offset, int count) {
+		if (hasRemaining(limit, offset, count)) {
+			return;
+		}
+		throw new IllegalArgumentException("Offset (" + offset + ") + count(" + count + ") larger than limit (" + limit + ")");
+	}
+	
+	public static boolean hasRemaining(int limit, int offset, int count) {
+		return offset + count <= limit;
 	}
 	
 	public static int readByte(InputStream stream) throws IOException {
