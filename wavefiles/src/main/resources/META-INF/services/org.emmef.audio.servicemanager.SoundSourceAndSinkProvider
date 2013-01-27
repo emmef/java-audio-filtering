@@ -1,0 +1,1 @@
+org.emmef.fileformat.riff.wave.WaveFileProvider # Provider using pure Java WAVE file reader

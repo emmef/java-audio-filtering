@@ -13,6 +13,7 @@ public class AudioFormat extends FrameType implements SampleType {
 	private final int bitsPerSample;
 	private final long locationMask;
 	private final double value0Dbf;
+	private final boolean hasSpareBits;
 
 	AudioFormat(SampleFormat format, long sampleRate, int channels, int bytesPerSample, int bitsPerSample, long locationMask, double value0Dbf) {
 		super(channels, sampleRate);
@@ -21,6 +22,7 @@ public class AudioFormat extends FrameType implements SampleType {
 		this.bitsPerSample = bitsPerSample;
 		this.locationMask = locationMask;
 		this.value0Dbf = value0Dbf;
+		hasSpareBits = getValidBitsPerSample() < getBytesPerSample() * 8;
 	}
 
 	@Override
@@ -46,6 +48,11 @@ public class AudioFormat extends FrameType implements SampleType {
 	@Override
 	public final double getValue0Dbf() {
 		return value0Dbf;
+	}
+	
+	@Override
+	public boolean hasSpareBits() {
+		return hasSpareBits;
 	}
 	
 	@Override
@@ -75,7 +82,7 @@ public class AudioFormat extends FrameType implements SampleType {
 		if (sampleFormat == SampleFormat.FLOAT && value0Dbf2 != 1.0) {
 			text.append(" scale=").append(value0Dbf2);
 		}
-		if (((validBitsPerSample + 7) >> 3) != getBytesPerSample()) {
+		if (validBitsPerSample + 7 >> 3 != getBytesPerSample()) {
 			text.append(" aligned=").append(getBytesPerSample());
 		}
 		
@@ -109,6 +116,9 @@ public class AudioFormat extends FrameType implements SampleType {
 					scale = 1L << (bitsPerSample >> 1) - 1;
 				}
 			}
+			if (bitsPerSample > 8 * bytesPerSample) {
+				throw new IllegalArgumentException("Number of bits per sample (" + bitsPerSample + ") cannot be greater that 8 times bytes per sample (" + 8 * bytesPerSample + ")");
+			}
 
 			return new AudioFormat(format, sampleRate, channels, bytesPerSample, bitsPerSample, locationMask, scale);
 		}
@@ -132,7 +142,7 @@ public class AudioFormat extends FrameType implements SampleType {
 
 		@Override
 		public AudioFormatSampleRateSetter channels(int channels) {
-			this.locationMask = SpeakerLocations.ofChannels(channels).getMask();
+			locationMask = SpeakerLocations.ofChannels(channels).getMask();
 			this.channels = channels;
 
 			return this;
@@ -141,8 +151,8 @@ public class AudioFormat extends FrameType implements SampleType {
 		@Override
 		public AudioFormatSampleRateSetter setLocations(Set<SpeakerLocation> locations) {
 			checkLocations(locations);
-			this.locationMask = SpeakerLocation.toMask(locations);
-			this.channels = locations.size();
+			locationMask = SpeakerLocation.toMask(locations);
+			channels = locations.size();
 
 			return this;
 		}
@@ -151,8 +161,8 @@ public class AudioFormat extends FrameType implements SampleType {
 			if (locations == null) {
 				throw new NullPointerException("Locations cannot be null");
 			}
-			this.locationMask = locations.getMask();
-			this.channels = locations.size();
+			locationMask = locations.getMask();
+			channels = locations.size();
 			
 			return this;
 		}
@@ -160,8 +170,8 @@ public class AudioFormat extends FrameType implements SampleType {
 		@Override
 		public AudioFormatSampleRateSetter mask(long mask) {
 			SpeakerLocation.checkMask(mask);
-			this.channels = SpeakerLocation.getNumberOfChannels(mask);
-			this.locationMask = mask;
+			channels = SpeakerLocation.getNumberOfChannels(mask);
+			locationMask = mask;
 			
 			return this;
 		}

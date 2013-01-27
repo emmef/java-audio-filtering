@@ -38,18 +38,30 @@ public interface SampleType {
 	/**
 	 * Returns a bit-mask of speaker locations for each frame.
 	 * <p>
-	 * The number of speaker locations is always equal to the number of
-	 * channels.
+	 * The mask is either 0 (which means default order) or the number of speaker
+	 * locations (bits set) must always equal to the number of channels
+	 * <p>
+	 * Full specs:
+	 * http://msdn.microsoft.com/en-us/windows/hardware/gg463006.aspx
 	 * 
 	 * @return a positive number.
 	 */
 	long getLocationMask();
 	
 	/**
-	 * Returns the sample value that indicates 0DBF.
+	 * Returns the value of 0 dB.
 	 * <p>
-	 * For integer valud values, this generally is  
-	 * @return
+	 * This is pure information AS-IS. All sound nodes have a 0dB magnitude of
+	 * 1.0. The information can in some case be used by providers, but there is
+	 * no guarantee.
+	 * 
+	 * @returns a positive number, most likely {@code 1.0}.
 	 */
 	double getValue0Dbf();
+	
+	/**
+	 * Returns whether the number of valid bits pers sample is smaller than the number of bytes per sample times eight.
+	 * @return {@code} if the number of valid bits pers sample is smaller than the number of bytes per sample times eight, {@code false} otherwise.
+	 */
+	boolean hasSpareBits();
 }

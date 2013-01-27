@@ -1,5 +1,8 @@
 package org.emmef.fileformat.riff;
 
+import org.emmef.samples.serialization.Deserialize;
+import org.emmef.samples.serialization.Serialize;
+
 public class RiffDataChunk extends RiffChunk {
 	private final byte[] buffer;
 
@@ -11,39 +14,39 @@ public class RiffDataChunk extends RiffChunk {
 		this.buffer = buffer;
 	}
 	
-	protected final byte[] getBuffer() {
-		return buffer;
+	protected final int getBufferSize() {
+		return buffer.length;
 	}
 	
-	public final int getByteAt(int index) {
-		return getByteAt(index, buffer);
+	protected final int getByteAt(int offset) {
+		return 0xff & Deserialize.read8(buffer, offset);
 	}
 	
-	public final int getWordAt(int index) {
-		return getWordAt(index, buffer);
+	protected final int getWordAt(int offset) {
+		return 0xffff & Deserialize.read16LittleEndian(buffer, offset);
 	}
 	
-	public final long getDWordAt(int index) {
-		return getDWordAt(index, buffer);
+	protected final long getDWordAt(int offset) {
+		return 0xffffffffL & Deserialize.read32LittleEndian(buffer, offset);
 	}
 	
-	public static final int getByteAt(int index, byte[] buffer) {
-		return buffer[index];
+	protected final long getQWordAt(int offset) {
+		return Deserialize.read64LittleEndian(buffer, offset);
 	}
 	
-	public static final int getWordAt(int index, byte[] buffer) {
-		return (0xff & buffer[index]) | ((0xff & buffer[index + 1]) << 8);
+	protected final void setByteAt(int value, int offset) {
+		Serialize.write08(value, buffer, offset);
 	}
 	
-	public static final long getDWordAt(int index, byte[] buffer) {
-		long result = 0xffL & buffer[index + 3];
-		result <<= 8;
-		result |= 0xff & buffer[index + 2];
-		result <<= 8;
-		result |= 0xff & buffer[index + 1];
-		result <<= 8;
-		result |= 0xff & buffer[index];
-		return result;
+	protected final void setWordAt(int value, int offset) {
+		Serialize.write16LittleEndian(value, buffer, offset);
 	}
 	
+	protected final void setDWordAt(long value, int offset) {
+		Serialize.write32LittleEndian((int)value, buffer, offset);
+	}
+	
+	protected final void setWWordAt(long value, int offset) {
+		Serialize.write64LittleEndian(value, buffer, offset);
+	}
 }

@@ -8,7 +8,7 @@ public final class SoundMetrics implements FrameMetrics, SampleType, StreamPrope
 	private final boolean seekable;
 	
 	public SoundMetrics(AudioFormat format, long frameCount, boolean seekable) {
-		this.audioFormat = format;
+		audioFormat = format;
 		this.frameCount = frameCount;
 		this.seekable = seekable;
 	}
@@ -34,6 +34,11 @@ public final class SoundMetrics implements FrameMetrics, SampleType, StreamPrope
 	@Override
 	public final int getValidBitsPerSample() {
 		return audioFormat.getValidBitsPerSample();
+	}
+	
+	@Override
+	public boolean hasSpareBits() {
+		return audioFormat.hasSpareBits();
 	}
 
 	@Override

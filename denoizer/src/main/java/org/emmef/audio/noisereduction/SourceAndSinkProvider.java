@@ -21,11 +21,11 @@ public class SourceAndSinkProvider {
 	}
 	
 	public static SoundSource createSource(URI sourceUri) {
-		return manager.createSource(sourceUri);
+		return manager.createSource(sourceUri, 0);
 	}
 
 	public static SoundSink createSink(URI sourceUri, AudioFormat format) {
-		return manager.createSink(sourceUri, format);
+		return manager.createSink(sourceUri, format, 0);
 	}
 
 	public static SoundSink createWithSameMetaData(SoundSource source, URI targetUri) {

@@ -10,7 +10,7 @@ public class AudioFactChunk extends RiffDataChunk {
 	}
 	
 	public boolean containsInformation() {
-		return getBuffer().length >= SIZE_DEFAULT_CHUNK;
+		return getBufferSize() >= SIZE_DEFAULT_CHUNK;
 	}
 	
 	public long getSamplePerChannel() {

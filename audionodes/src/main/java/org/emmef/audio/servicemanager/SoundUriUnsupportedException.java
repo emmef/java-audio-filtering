@@ -6,4 +6,8 @@ public class SoundUriUnsupportedException extends SoundException {
 		super(message);
 	}
 
+	public SoundUriUnsupportedException(RuntimeException e) {
+		super(e);
+	}
+
 }

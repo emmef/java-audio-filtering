@@ -11,9 +11,14 @@ import org.emmef.audio.servicemanager.SoundSourceAndSinkProvider;
 import org.emmef.audio.servicemanager.SoundUriUnsupportedException;
 
 public class LibSndFileSoundProvider implements SoundSourceAndSinkProvider {
-
+	
 	@Override
-	public SoundSource createSource(URI sourceUri) {
+	public int getPriority() {
+		return Integer.MIN_VALUE;
+	}
+	
+	@Override
+	public SoundSource createSource(URI sourceUri, int bufferHint) {
 		if (!"file".equals(sourceUri.getScheme())) {
 			throw new SoundUriUnsupportedException(sourceUri.toString());
 		}
@@ -32,7 +37,7 @@ public class LibSndFileSoundProvider implements SoundSourceAndSinkProvider {
 	}
 
 	@Override
-	public SoundSink createSink(URI sourceUri, AudioFormat format) {
+	public SoundSink createSink(URI sourceUri, AudioFormat format, int bufferHint) {
 		throw new UnsupportedOperationException();
 	}
 

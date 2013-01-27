@@ -1,6 +1,7 @@
 package org.emmef.audio.servicemanager;
 
 import java.net.URI;
+import java.util.Comparator;
 import java.util.List;
 
 import org.emmef.audio.format.AudioFormat;
@@ -11,39 +12,41 @@ import org.emmef.servicemanager.AbstractServiceManager;
 import org.emmef.servicemanager.ProviderVisitor;
 import org.emmef.servicemanager.ProviderVisitor.VisitState;
 
-public class SoundSourceAndSinkManager extends AbstractServiceManager<SoundSourceAndSinkProvider> implements SoundSourceAndSinkProvider {
+public class SoundSourceAndSinkManager extends AbstractServiceManager<SoundSourceAndSinkProvider>  {
 	public static final Logger log = Logger.getDefault();
 	public static final SoundSourceAndSinkManager instance = new SoundSourceAndSinkManager();
 	
 	public SoundSourceAndSinkManager() {
-		super(SoundSourceAndSinkProvider.class, true);
+		super(SoundSourceAndSinkProvider.class, true, new Comparator<SoundSourceAndSinkProvider>() {
+			@Override
+			public int compare(SoundSourceAndSinkProvider o1, SoundSourceAndSinkProvider o2) {
+				return Long.compare(o2.getPriority(), o1.getPriority());
+			}
+		});
 	}
 	
 	public static final SoundSourceAndSinkManager getInstance() {
 		return instance;
 	}
 
-	@Override
-	public SoundSource createSource(URI sourceUri) {
+	public SoundSource createSource(URI sourceUri, int bufferHint) {
 		return visit(sourceUri, "", new Functor<String, SoundSource>() {
 			@Override
 			public SoundSource get(URI uri, SoundSourceAndSinkProvider soundSourceAndSinkProvider, String parameter) {
-				return soundSourceAndSinkProvider.createSource(uri);
+				return soundSourceAndSinkProvider.createSource(uri, 0);
 			}
 		});
 	}
 
-	@Override
-	public SoundSink createSink(URI sourceUri, AudioFormat format) {
+	public SoundSink createSink(URI sourceUri, AudioFormat format, int bufferHint) {
 		return visit(sourceUri, format, new Functor<AudioFormat, SoundSink>() {
 			@Override
 			public SoundSink get(URI uri, SoundSourceAndSinkProvider soundSourceAndSinkProvider, AudioFormat format) {
-				return soundSourceAndSinkProvider.createSink(uri, format);
+				return soundSourceAndSinkProvider.createSink(uri, format, 0);
 			}
 		});
 	}
 
-	@Override
 	public SoundSink createWithSameFormat(SoundSource source, URI targetUri) {
 		return visit(targetUri, source, new Functor<SoundSource, SoundSink>() {
 			@Override

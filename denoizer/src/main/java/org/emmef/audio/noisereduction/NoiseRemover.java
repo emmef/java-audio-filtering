@@ -172,14 +172,14 @@ public class NoiseRemover implements Program {
 
 	@Override
 	public void run(String[] args) throws Exception {
-//		String[] fakeArguments = new String[] {
-//			"/home/michel/Music/high-definition/Test_File_2_0_STEREO_PCM.wav",
-//			"/tmp",
-//			};
 		String[] fakeArguments = new String[] {
-				"/tmp/PortoBottleOpening.jpg",
-				"/tmp",
-		};
+			"/home/michel/Music/high-definition/Test_File_2_0_STEREO_PCM.wav",
+			"/tmp",
+			};
+//		String[] fakeArguments = new String[] {
+//				"/tmp/PortoBottleOpening.jpg",
+//				"/tmp",
+//		};
 		cmd.parse(fakeArguments);
 		logger.setLevel(Level.FINE);
 		

@@ -1,6 +1,8 @@
 package org.emmef.servicemanager;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -11,20 +13,21 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.emmef.servicemanager.ProviderVisitor.VisitState;
 
 public abstract class AbstractServiceManager<T> {
-
 	private final Object lock = new Object[0];
 	private final boolean rememberServicesLoaded;
 	private final Class<T> classToProvide;
 	
 	private final AtomicReference<List<T>> providers = new AtomicReference<>();
 	private final AtomicBoolean servicesLoaded = new AtomicBoolean();
+	private final Comparator<T> comparator;
 	
-	protected AbstractServiceManager(Class<T> classToProvide, boolean rememberServicesLoaded) {
+	protected AbstractServiceManager(Class<T> classToProvide, boolean rememberServicesLoaded, Comparator<T> comparator) {
 		if (classToProvide == null) {
 			throw new NullPointerException("Need a class to provide");
 		}
 		this.classToProvide = classToProvide;
 		this.rememberServicesLoaded = rememberServicesLoaded;
+		this.comparator = comparator;
 	}
 	
 	protected final VisitState visit(ProviderVisitor<T> visitor) {
@@ -77,7 +80,7 @@ public abstract class AbstractServiceManager<T> {
 					providerList.add(provider);
 				}
 			}
-
+			Collections.sort(providerList, comparator);
 			this.providers.set(providerList);
 		}
 	}
