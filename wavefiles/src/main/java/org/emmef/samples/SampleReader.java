@@ -7,35 +7,31 @@ import java.io.InputStream;
 public class SampleReader {
 	
 	public static int read8(InputStream stream) throws IOException {
-		return (byte)readByte(stream); // sign extend when converted back to int
-	}
-
-	public static int read8Unsigned(InputStream stream) throws IOException {
-		return readByte(stream);
+		return (byte)readByteAsInt(stream); // sign extend when converted back to int
 	}
 	
 	public static int read16LittleEndian(InputStream stream) throws IOException {
-		return readByte(stream) | readByte(stream) << 24 >> 16;
+		return readByteAsInt(stream) | readByteAsInt(stream) << 24 >> 16;
 	}
 
 	public static int read16BigEndian(InputStream stream) throws IOException {
-		return readByte(stream) << 24 >> 16 | readByte(stream);
+		return readByteAsInt(stream) << 24 >> 16 | readByteAsInt(stream);
 	}
 	
 	public static int read24LittleEndian(InputStream stream) throws IOException {
-		return readByte(stream) | readByte(stream) << 8 | readByte(stream) << 24 >> 8;
+		return readByteAsInt(stream) | readByteAsInt(stream) << 8 | readByteAsInt(stream) << 24 >> 8;
 	}
 
 	public static int read24BigEndian(InputStream stream) throws IOException {
-		return readByte(stream) << 24 >> 8 | readByte(stream) << 8 | readByte(stream);
+		return readByteAsInt(stream) << 24 >> 8 | readByteAsInt(stream) << 8 | readByteAsInt(stream);
 	}
 	
 	public static int read32LittleEndian(InputStream stream) throws IOException {
-		return readByte(stream) | readByte(stream) << 8 | readByte(stream) << 16 | readByte(stream) << 24;
+		return readByteAsInt(stream) | readByteAsInt(stream) << 8 | readByteAsInt(stream) << 16 | readByteAsInt(stream) << 24;
 	}
 	
 	public static int read32BigEndian(InputStream stream) throws IOException {
-		return readByte(stream) << 24 | readByte(stream) << 16 | readByte(stream) << 8 | readByte(stream);
+		return readByteAsInt(stream) << 24 | readByteAsInt(stream) << 16 | readByteAsInt(stream) << 8 | readByteAsInt(stream);
 	}
 	
 	public static float readFloatLittleEndian(InputStream stream) throws IOException {
@@ -48,26 +44,26 @@ public class SampleReader {
 	
 	public static long read64LittleEndian(InputStream stream) throws IOException {
 		return
-				readByte(stream) |
-				readByte(stream) << 8 |
-				readByte(stream) << 16 |
-				readByte(stream) << 24 |
-				readByte(stream) << 32 |
-				readByte(stream) << 40 |
-				readByte(stream) << 48 |
-				readByte(stream) << 56;
+				readByteAsLong(stream) |
+				readByteAsLong(stream) << 8 |
+				readByteAsLong(stream) << 16 |
+				readByteAsLong(stream) << 24 |
+				readByteAsLong(stream) << 32 |
+				readByteAsLong(stream) << 40 |
+				readByteAsLong(stream) << 48 |
+				readByteAsLong(stream) << 56;
 	}
 	
 	public static long read64BigEndian(InputStream stream) throws IOException {
 		return
-				readByte(stream) << 56 |
-				readByte(stream) << 48 |
-				readByte(stream) << 40 |
-				readByte(stream) << 32 |
-				readByte(stream) << 24 |
-				readByte(stream) << 16 |
-				readByte(stream) << 8 |
-				readByte(stream);
+				readByteAsLong(stream) << 56 |
+				readByteAsLong(stream) << 48 |
+				readByteAsLong(stream) << 40 |
+				readByteAsLong(stream) << 32 |
+				readByteAsLong(stream) << 24 |
+				readByteAsLong(stream) << 16 |
+				readByteAsLong(stream) << 8 |
+				readByteAsLong(stream);
 	}
 	
 	public static double readDoubleLittleEndian(InputStream stream) throws IOException {
@@ -81,33 +77,29 @@ public class SampleReader {
 	public static int read8(byte[] buffer, int offset) {
 		return buffer[offset]; // sign extend when converted back to int
 	}
-
-	public static int read8Unsigned(byte[] buffer, int offset) {
-		return 0xff & buffer[offset];
-	}
 	
 	public static int read16LittleEndian(byte[] buffer, int offset) {
-		return buffer[offset] | buffer[offset + 1] << 24 >> 16;
+		return 0xff & buffer[offset] | buffer[offset + 1] << 24 >> 16;
 	}
 
 	public static int read16BigEndian(byte[] buffer, int offset) {
-		return buffer[offset] << 24 >> 16 | buffer[offset + 1];
+		return buffer[offset] << 24 >> 16 | 0xff & buffer[offset + 1];
 	}
 	
 	public static int read24LittleEndian(byte[] buffer, int offset) {
-		return buffer[offset] | buffer[offset + 1] << 8 | buffer[offset + 2] << 24 >> 8;
+		return 0xff & buffer[offset] | (0xff & buffer[offset + 1]) << 8 | buffer[offset + 2] << 24 >> 8;
 	}
 
 	public static int read24BigEndian(byte[] buffer, int offset) {
-		return buffer[offset] << 24 >> 8 | buffer[offset + 1] << 8 | buffer[offset + 2];
+		return buffer[offset] << 24 >> 8 | (0xff & buffer[offset + 1]) << 8 | 0xff & buffer[offset + 2];
 	}
 	
 	public static int read32LittleEndian(byte[] buffer, int offset) {
-		return buffer[offset] | buffer[offset + 1] << 8 | buffer[offset + 2] << 16 | buffer[offset + 3] << 24;
+		return 0xff & buffer[offset] | (0xff & buffer[offset + 1]) << 8 | (0xff & buffer[offset + 2]) << 16 | buffer[offset + 3] << 24;
 	}
 	
 	public static int read32BigEndian(byte[] buffer, int offset) {
-		return buffer[offset] << 24 | buffer[offset + 1] << 16 | buffer[offset + 2] << 8 | buffer[offset + 3];
+		return buffer[offset] << 24 | (0xff & buffer[offset + 1]) << 16 | (0xff & buffer[offset + 2]) << 8 | 0xff & buffer[offset + 3];
 	}
 	
 	public static float readFloatLittleEndian(byte[] buffer, int offset) {
@@ -121,27 +113,27 @@ public class SampleReader {
 	public static long read64LittleEndian(byte[] buffer, int offset) {
 		int position = offset;
 		return
-				buffer[position++] |
-				buffer[position++] << 8 |
-				buffer[position++] << 16 |
-				buffer[position++] << 24 |
-				buffer[position++] << 32 |
-				buffer[position++] << 40 |
-				buffer[position++] << 48 |
-				buffer[position] << 56;
+				0xffL & buffer[position++] |
+				(0xffL & buffer[position++]) << 8 |
+				(0xffL & buffer[position++]) << 16 |
+				(0xffL & buffer[position++]) << 24 |
+				(0xffL & buffer[position++]) << 32 |
+				(0xffL & buffer[position++]) << 40 |
+				(0xffL & buffer[position++]) << 48 |
+				(0xffL & buffer[position]) << 56;
 	}
 
 	public static long read64BigEndian(byte[] buffer, int offset) {
 		int position = offset;
 		return
-				buffer[position++] << 56 |
-				buffer[position++] << 48 |
-				buffer[position++] << 40 |
-				buffer[position++] << 32 |
-				buffer[position++] << 24 |
-				buffer[position++] << 16 |
-				buffer[position++] << 8 |
-				buffer[position];
+				(0xffL & buffer[position++]) << 56 |
+				(0xffL & buffer[position++]) << 48 |
+				(0xffL & buffer[position++]) << 40 |
+				(0xffL & buffer[position++]) << 32 |
+				(0xffL & buffer[position++]) << 24 |
+				(0xffL & buffer[position++]) << 16 |
+				(0xffL & buffer[position++]) << 8 |
+				0xffL & buffer[position++];
 	}
 	
 	public static double readDoubleLittleEndian(byte[] buffer, int offset) {
@@ -167,7 +159,15 @@ public class SampleReader {
 		return offset + count <= limit;
 	}
 	
-	public static int readByte(InputStream stream) throws IOException {
+	public static int readByteAsInt(InputStream stream) throws IOException {
+		int read = stream.read();
+		if (read < 0) {
+			throw new EOFException();
+		}
+		return read;
+	}
+	
+	public static long readByteAsLong(InputStream stream) throws IOException {
 		int read = stream.read();
 		if (read < 0) {
 			throw new EOFException();

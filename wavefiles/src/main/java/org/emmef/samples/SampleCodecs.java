@@ -7,14 +7,13 @@ import java.nio.ByteBuffer;
 public enum SampleCodecs implements SampleCodec {
 	SIGNED_8() {
 		@Override
-		public double decodeDouble(ByteBuffer buffer) {
-			byte b = buffer.get();
-			return SCALE_8_TO_DOUBLE * b;
+		public double decodeDouble(byte[] buffer, int offset) {
+			return SCALE_8_TO_DOUBLE * SampleReader.read8(buffer, offset);
 		}
 		
 		@Override
-		public float decodeFloat(ByteBuffer buffer) {
-			return SCALE_8_TO_FLOAT * buffer.get();
+		public float decodeFloat(byte[] buffer, int offset) {
+			return SCALE_8_TO_FLOAT * SampleReader.read8(buffer, offset);
 		}
 		
 		@Override
@@ -23,24 +22,24 @@ public enum SampleCodecs implements SampleCodec {
 		}
 
 		@Override
-		public void encodeDouble(ByteBuffer buffer, double sample) {
-			buffer.put(toScaledByte(sample));
+		public void encodeDouble(double sample, byte[] buffer, int offset) {
+			SampleWriter.write8(toScaledByte(sample), buffer, offset);
 		}
 
 		@Override
-		public void encodeFloat(ByteBuffer buffer, float sample) {
-			encodeDouble(buffer, sample);
+		public void encodeFloat(float sample, byte[] buffer, int offset) {
+			encodeDouble(sample, buffer, offset);
 		}
 	},
 	UNSIGNED_8() {
 		@Override
-		public double decodeDouble(ByteBuffer buffer) {
-			return SCALE_8_TO_DOUBLE * (-128 + (0xff & buffer.get()));
+		public double decodeDouble(byte[] buffer, int offset) {
+			return SCALE_8_TO_DOUBLE * (-128 + (0xff & SampleReader.read8(buffer, offset)));
 		}
 		
 		@Override
-		public float decodeFloat(ByteBuffer buffer) {
-			return SCALE_8_TO_FLOAT * (-128 + (0xff & buffer.get()));
+		public float decodeFloat(byte[] buffer, int offset) {
+			return SCALE_8_TO_FLOAT * (-128 + (0xff & SampleReader.read8(buffer, offset)));
 		}
 		
 		@Override
@@ -49,24 +48,24 @@ public enum SampleCodecs implements SampleCodec {
 		}
 
 		@Override
-		public void encodeDouble(ByteBuffer buffer, double sample) {
-			buffer.put(toScaled128UpByte(sample));
+		public void encodeDouble(double sample, byte[] buffer, int offset) {
+			SampleWriter.write8(toScaled128UpByte(sample), buffer, offset);
 		}
 
 		@Override
-		public void encodeFloat(ByteBuffer buffer, float sample) {
-			encodeDouble(buffer, sample);
+		public void encodeFloat(float sample, byte[] buffer, int offset) {
+			encodeDouble(sample, buffer, offset);
 		}
 	},
 	SIGNED_16() {
 		@Override
-		public double decodeDouble(ByteBuffer buffer) {
-			return SCALE_16_TO_DOUBLE * buffer.getShort();
+		public double decodeDouble(byte[] buffer, int offset) {
+			return SCALE_16_TO_DOUBLE * SampleReader.read16LittleEndian(buffer, offset);
 		}
 
 		@Override
-		public float decodeFloat(ByteBuffer buffer) {
-			return SCALE_16_TO_FLOAT * buffer.getShort();
+		public float decodeFloat(byte[] buffer, int offset) {
+			return SCALE_16_TO_FLOAT * SampleReader.read16LittleEndian(buffer, offset);
 		}
 
 		@Override
@@ -75,55 +74,24 @@ public enum SampleCodecs implements SampleCodec {
 		}
 
 		@Override
-		public void encodeDouble(ByteBuffer buffer, double sample) {
-			buffer.putShort(toScaledShort(sample));
+		public void encodeDouble(double sample, byte[] buffer, int offset) {
+			SampleWriter.write16LittleEndian(toScaledShort(sample), buffer, offset);
 		}
 
 		@Override
-		public void encodeFloat(ByteBuffer buffer, float sample) {
-			encodeDouble(buffer, sample);
+		public void encodeFloat(float sample, byte[] buffer, int offset) {
+			encodeDouble(sample, buffer, offset);
 		}
 	},
 	PACKED_24() {
 		@Override
-		public double decodeDouble(ByteBuffer buffer) {
-			return SCALE_24_TO_DOUBLE * readPacked24BitsToInt(buffer);
+		public double decodeDouble(byte[] buffer, int offset) {
+			return SCALE_24_TO_DOUBLE * SampleReader.read24LittleEndian(buffer, offset);
 		}
 
 		@Override
-		public float decodeFloat(ByteBuffer buffer) {
-			return SCALE_24_TO_FLOAT * readPacked24BitsToInt(buffer);
-		}
-
-		@Override
-		public int bytesPerSample() {
-			return 3;
-		}
-
-		@Override
-		public void encodeDouble(ByteBuffer buffer, double sample) {
-			int bit24 = toScaled24Bit(sample);
-			buffer.put((byte)(0xff & bit24));
-			bit24 >>= 8;
-			buffer.put((byte)(0xff & bit24));
-			bit24 >>= 8;
-			buffer.put((byte)(0xff & bit24));
-		}
-
-		@Override
-		public void encodeFloat(ByteBuffer buffer, float sample) {
-			encodeDouble(buffer, sample);
-		}
-	},
-	PADDED_24() {
-		@Override
-		public double decodeDouble(ByteBuffer buffer) {
-			return SCALE_24_TO_DOUBLE * readPadded24BitsToInteger(buffer);
-		}
-
-		@Override
-		public float decodeFloat(ByteBuffer buffer) {
-			return SCALE_24_TO_FLOAT * readPadded24BitsToInteger(buffer);
+		public float decodeFloat(byte[] buffer, int offset) {
+			return SCALE_24_TO_FLOAT * SampleReader.read24LittleEndian(buffer, offset);
 		}
 
 		@Override
@@ -132,56 +100,24 @@ public enum SampleCodecs implements SampleCodec {
 		}
 
 		@Override
-		public void encodeDouble(ByteBuffer buffer, double sample) {
-			int bit24 = toScaled24Bit(sample);
-			buffer.put((byte)(0xff & bit24));
-			bit24 >>= 8;
-			buffer.put((byte)(0xff & bit24));
-			bit24 >>= 8;
-			buffer.put((byte)(0xff & bit24));
-			buffer.put((byte)0);
+		public void encodeDouble(double sample, byte[] buffer, int offset) {
+			SampleWriter.write24LittleEndian(toScaled24Bit(sample), buffer, offset);
 		}
 
 		@Override
-		public void encodeFloat(ByteBuffer buffer, float sample) {
-			encodeDouble(buffer, sample);
+		public void encodeFloat(float sample, byte[] buffer, int offset) {
+			encodeDouble(sample, buffer, offset);
 		}
 	},
-	SCALED_24() {
+	PRE_PADDED_24() {
 		@Override
-		public double decodeDouble(ByteBuffer buffer) {
-			return SCALE_24_TO_DOUBLE * readScaled24BitsToInteger(buffer);
+		public double decodeDouble(byte[] buffer, int offset) {
+			return SCALE_24_TO_DOUBLE * SampleReader.read24LittleEndian(buffer, offset + 1);
 		}
 
 		@Override
-		public float decodeFloat(ByteBuffer buffer) {
-			return SCALE_24_TO_FLOAT * readScaled24BitsToInteger(buffer);
-		}
-
-		@Override
-		public int bytesPerSample() {
-			return 3;
-		}
-
-		@Override
-		public void encodeDouble(ByteBuffer buffer, double sample) {
-			buffer.putInt(toScaledInteger(sample));
-		}
-
-		@Override
-		public void encodeFloat(ByteBuffer buffer, float sample) {
-			encodeDouble(buffer, sample);
-		}
-	},
-	SIGNED_32() {
-		@Override
-		public double decodeDouble(ByteBuffer buffer) {
-			return SCALE_32_TO_DOUBLE * buffer.getInt();
-		}
-
-		@Override
-		public float decodeFloat(ByteBuffer buffer) {
-			return SCALE_32_TO_FLOAT * buffer.getInt();
+		public float decodeFloat(byte[] buffer, int offset) {
+			return SCALE_24_TO_FLOAT * SampleReader.read24LittleEndian(buffer, offset + 1);
 		}
 
 		@Override
@@ -190,24 +126,79 @@ public enum SampleCodecs implements SampleCodec {
 		}
 
 		@Override
-		public void encodeDouble(ByteBuffer buffer, double sample) {
-			buffer.putInt(toScaledInteger(sample));
+		public void encodeDouble(double sample, byte[] buffer, int offset) {
+			SampleWriter.write8(0, buffer, offset);
+			SampleWriter.write24LittleEndian(toScaled24Bit(sample), buffer, offset + 1);
 		}
 
 		@Override
-		public void encodeFloat(ByteBuffer buffer, float sample) {
-			encodeDouble(buffer, sample);
+		public void encodeFloat(float sample, byte[] buffer, int offset) {
+			encodeDouble(sample, buffer, offset);
+		}
+	},
+	POST_PADDED_24() {
+		@Override
+		public double decodeDouble(byte[] buffer, int offset) {
+			return SCALE_24_TO_DOUBLE * SampleReader.read24LittleEndian(buffer, offset);
+		}
+
+		@Override
+		public float decodeFloat(byte[] buffer, int offset) {
+			return SCALE_24_TO_FLOAT * SampleReader.read24LittleEndian(buffer, offset);
+		}
+
+		@Override
+		public int bytesPerSample() {
+			return 4;
+		}
+
+		@Override
+		public void encodeDouble(double sample, byte[] buffer, int offset) {
+			SampleWriter.write24LittleEndian(toScaled24Bit(sample), buffer, offset);
+			SampleWriter.write8(0, buffer, offset + 3);
+			
+		}
+
+		@Override
+		public void encodeFloat(float sample, byte[] buffer, int offset) {
+			encodeDouble(sample, buffer, offset);
+		}
+	},
+	SIGNED_32() {
+		@Override
+		public double decodeDouble(byte[] buffer, int offset) {
+			return SCALE_32_TO_DOUBLE * SampleReader.read32LittleEndian(buffer, offset);
+		}
+
+		@Override
+		public float decodeFloat(byte[] buffer, int offset) {
+			return SCALE_32_TO_FLOAT * SampleReader.read32LittleEndian(buffer, offset);
+		}
+
+		@Override
+		public int bytesPerSample() {
+			return 4;
+		}
+
+		@Override
+		public void encodeDouble(double sample, byte[] buffer, int offset) {
+			SampleWriter.write32LittleEndian(toScaledInteger(sample), buffer, offset);
+		}
+
+		@Override
+		public void encodeFloat(float sample, byte[] buffer, int offset) {
+			encodeDouble(sample, buffer, offset);
 		}
 	},
 	SIGNED_64() {
 		@Override
-		public double decodeDouble(ByteBuffer buffer) {
-			return SCALE_64_TO_DOUBLE * buffer.getLong();
+		public double decodeDouble(byte[] buffer, int offset) {
+			return SCALE_64_TO_DOUBLE * SampleReader.read64LittleEndian(buffer, offset);
 		}
 		
 		@Override
-		public float decodeFloat(ByteBuffer buffer) {
-			return SCALE_64_TO_FLOAT * buffer.getLong();
+		public float decodeFloat(byte[] buffer, int offset) {
+			return SCALE_64_TO_FLOAT * SampleReader.read64LittleEndian(buffer, offset);
 		}
 		
 		@Override
@@ -216,24 +207,24 @@ public enum SampleCodecs implements SampleCodec {
 		}
 
 		@Override
-		public void encodeDouble(ByteBuffer buffer, double sample) {
-			buffer.putLong(toScaledLong(sample));
+		public void encodeDouble(double sample, byte[] buffer, int offset) {
+			SampleWriter.write64LittleEndian(toScaledLong(sample), buffer, offset);
 		}
 
 		@Override
-		public void encodeFloat(ByteBuffer buffer, float sample) {
-			encodeDouble(buffer, sample);
+		public void encodeFloat(float sample, byte[] buffer, int offset) {
+			encodeDouble(sample, buffer, offset);
 		}
 	},
 	FLOAT() {
 		@Override
-		public double decodeDouble(ByteBuffer buffer) {
-			return buffer.getFloat();
+		public double decodeDouble(byte[] buffer, int offset) {
+			return SampleReader.readFloatLittleEndian(buffer, offset);
 		}
 		
 		@Override
-		public float decodeFloat(ByteBuffer buffer) {
-			return buffer.getFloat();
+		public float decodeFloat(byte[] buffer, int offset) {
+			return SampleReader.readFloatLittleEndian(buffer, offset);
 		}
 		
 		@Override
@@ -242,13 +233,44 @@ public enum SampleCodecs implements SampleCodec {
 		}
 
 		@Override
-		public void encodeDouble(ByteBuffer buffer, double sample) {
-			buffer.putFloat((float)sample);
+		public void encodeDouble(double sample, byte[] buffer, int offset) {
+			SampleWriter.writeFloatLittleEndian((float)sample, buffer, offset);
 		}
 
 		@Override
-		public void encodeFloat(ByteBuffer buffer, float sample) {
-			buffer.putFloat(sample);
+		public void encodeFloat(float sample, byte[] buffer, int offset) {
+			SampleWriter.writeFloatLittleEndian(sample, buffer, offset);
+		}
+		
+		@Override
+		public Storage getStorage() {
+			return Storage.FLOAT;
+		}
+	},
+	FLOAT_COOLEDIT() {
+		@Override
+		public double decodeDouble(byte[] buffer, int offset) {
+			return SCALE_24_TO_DOUBLE * SampleReader.readFloatLittleEndian(buffer, offset);
+		}
+		
+		@Override
+		public float decodeFloat(byte[] buffer, int offset) {
+			return SCALE_24_TO_FLOAT * SampleReader.readFloatLittleEndian(buffer, offset);
+		}
+		
+		@Override
+		public int bytesPerSample() {
+			return 4;
+		}
+
+		@Override
+		public void encodeDouble(double sample, byte[] buffer, int offset) {
+			SampleWriter.writeFloatLittleEndian((float)(sample * SCALE_24_FROM_DOUBLE), buffer, offset);
+		}
+
+		@Override
+		public void encodeFloat(float sample, byte[] buffer, int offset) {
+			SampleWriter.writeFloatLittleEndian(SCALE_24_FROM_FLOAT * sample, buffer, offset);
 		}
 		
 		@Override
@@ -258,13 +280,13 @@ public enum SampleCodecs implements SampleCodec {
 	},
 	DOUBLE() {
 		@Override
-		public double decodeDouble(ByteBuffer buffer) {
-			return buffer.getDouble();
+		public double decodeDouble(byte[] buffer, int offset) {
+			return SampleReader.readDoubleLittleEndian(buffer, offset);
 		}
 		
 		@Override
-		public float decodeFloat(ByteBuffer buffer) {
-			return (float)buffer.getDouble();
+		public float decodeFloat(byte[] buffer, int offset) {
+			return (float)SampleReader.readDoubleLittleEndian(buffer, offset);
 		}
 		
 		@Override
@@ -273,13 +295,13 @@ public enum SampleCodecs implements SampleCodec {
 		}
 
 		@Override
-		public void encodeDouble(ByteBuffer buffer, double sample) {
-			buffer.putDouble(sample);
+		public void encodeDouble(double sample, byte[] buffer, int offset) {
+			SampleWriter.writeDoubleLittleEndian(sample, buffer, offset);
 		}
 
 		@Override
-		public void encodeFloat(ByteBuffer buffer, float sample) {
-			buffer.putDouble(sample);
+		public void encodeFloat(float sample, byte[] buffer, int offset) {
+			SampleWriter.writeDoubleLittleEndian(sample, buffer, offset);
 		}
 		
 		@Override

@@ -2,8 +2,7 @@ package org.emmef.samples;
 
 import static org.junit.Assert.*;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+import java.nio.BufferUnderflowException;
 
 import org.emmef.samples.BytesPerSample.Storage;
 import org.junit.Test;
@@ -72,7 +71,7 @@ public class SampleCodecsTest {
 				message.append("Codec=").append(helper.codec).append("; input=").append(input).append("; encoded=");
 				helper.resetBuffer();
 				for (int bit = 0; bit < helper.codec.bytesPerSample(); bit++) {
-					int byteValue = helper.buffer.get();
+					int byteValue = helper.get();
 					message.append(HEXDIGITS.charAt(0xf & byteValue >>> 4));
 					message.append(HEXDIGITS.charAt(0xf & byteValue));
 				}
@@ -132,9 +131,10 @@ public class SampleCodecsTest {
 		public final double ceiling;
 		public final double epsilon;
 		public final SampleCodec codec;
-		public final ByteBuffer buffer;
+		public final byte[] buffer;
 		public final long bitsmax;
 		private final boolean useDoubles;
+		private int position;
 		
 		public CodecHelper(SampleCodec codec, boolean useDoubles) {
 			this.codec = codec;
@@ -143,27 +143,34 @@ public class SampleCodecsTest {
 			ceiling = codec.getStorage() == Storage.TWOS_COMPLEMENT ? 1.0 * (bitsmax - 1) / bitsmax : 1.0;
 			epsilon = 0.50001 / bitsmax; // double faults: to and fro
 			floor = -1.0;
-			buffer = ByteBuffer.allocateDirect(16);
-			buffer.order(ByteOrder.LITTLE_ENDIAN);
+			buffer = new byte[16];
 		}
 		
 		double encodeDecodeInSameSpace(double input) {
 			if (useDoubles) {
 				resetBuffer();
-				codec.encodeDouble(buffer, input);
+				codec.encodeDouble(input, buffer, 0);
 				resetBuffer();
-				return codec.decodeDouble(buffer);
+				return codec.decodeDouble(buffer, 0);
 			}
 			else {
 				resetBuffer();
-				codec.encodeFloat(buffer, (float)input);
+				codec.encodeFloat((float)input, buffer, 0);
 				resetBuffer();
-				return codec.decodeFloat(buffer);
+				return codec.decodeFloat(buffer, 0);
 			}
 		}
 		
 		void resetBuffer() {
-			buffer.position(0);
+			position = 0;
+		}
+		
+		byte get() {
+			if (position < buffer.length) {
+				return buffer[position++];
+			}
+			
+			throw new BufferUnderflowException();
 		}
 	}
 }

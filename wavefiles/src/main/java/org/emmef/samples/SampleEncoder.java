@@ -1,8 +1,7 @@
 package org.emmef.samples;
 
-import java.nio.ByteBuffer;
 
 public interface SampleEncoder extends BytesPerSample {
-	void encodeDouble(ByteBuffer buffer, double sample);
-	void encodeFloat(ByteBuffer buffer, float sample);
+	void encodeDouble(double sample, byte[] buffer, int offset);
+	void encodeFloat(float sample, byte[] buffer, int offset);
 }

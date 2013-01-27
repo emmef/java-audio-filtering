@@ -95,7 +95,7 @@ public class RiffUtils {
 		readBytes(stream, buffer, reads);
 		
 		return buffer;
-	}	
+	}
 	
 	public static long skiprecord(InputStream stream, byte[] buffer, RiffRecord record) throws IOException {
 		checkNotNull(record, "record");
@@ -105,7 +105,7 @@ public class RiffUtils {
 		
 		while (read < skips) {
 			long yetToSkip = skips - read;
-			int toRead = (int)Math.min(yetToSkip, buffer.length); 
+			int toRead = (int)Math.min(yetToSkip, buffer.length);
 			readBytes(stream, buffer, toRead);
 			read += toRead;
 		}
@@ -146,7 +146,7 @@ public class RiffUtils {
 	public static int readTwoByteUnsigned(InputStream stream, byte[] buffer) throws IOException {
 		readBytes(stream, buffer, 2);
 		
-		return buffer[0] | (buffer[1] << 8);
+		return buffer[0] | buffer[1] << 8;
 	}
 	
 	public static int readByteUnsigned(InputStream stream) throws IOException {
@@ -175,5 +175,11 @@ public class RiffUtils {
 			return object;
 		}
 		throw new NullPointerException(errorMessage);
+	}
+
+	public static void checkBufferOffsetAndLength(int length, int offset, int count) {
+		if (offset + count > length) {
+			throw new IllegalArgumentException("Offset (" + offset + ") and count (" + count + ") exceed buffer size (" + length + ")");
+		}
 	}
 }
