@@ -49,11 +49,12 @@ public class WaveFileProvider implements SoundSourceAndSinkProvider {
 	public SoundSink createSink(URI sourceUri, AudioFormat format, int bufferHint) throws SoundUriUnsupportedException, SoundFormatUnsupportedException {
 		checkUrlScheme(sourceUri);
 		try {
-			return new WaveFileWriter(new File(sourceUri.getSchemeSpecificPart()), format, getBufferSize(bufferHint));
+			throw new SoundUriUnsupportedException("No support for writing yet.");
+//			return new WaveFileWriter(new File(sourceUri.getSchemeSpecificPart()), format, getBufferSize(bufferHint));
 		}
-		catch (IOException e) {
-			throw new IllegalStateException(e);
-		}
+//		catch (IOException e) {
+//			throw new IllegalStateException(e);
+//		}
 		catch (RuntimeException e) {
 			throw new SoundUriUnsupportedException(e);
 		}
