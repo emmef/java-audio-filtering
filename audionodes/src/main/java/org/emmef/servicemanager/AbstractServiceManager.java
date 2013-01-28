@@ -80,7 +80,9 @@ public abstract class AbstractServiceManager<T> {
 					providerList.add(provider);
 				}
 			}
-			Collections.sort(providerList, comparator);
+			if (comparator != null) {
+				Collections.sort(providerList, comparator);
+			}
 			this.providers.set(providerList);
 		}
 	}
