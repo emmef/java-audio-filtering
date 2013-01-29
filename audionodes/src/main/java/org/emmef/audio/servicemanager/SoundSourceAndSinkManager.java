@@ -7,13 +7,13 @@ import java.util.List;
 import org.emmef.audio.format.AudioFormat;
 import org.emmef.audio.nodes.SoundSink;
 import org.emmef.audio.nodes.SoundSource;
-import org.emmef.logging.Logger;
 import org.emmef.servicemanager.AbstractServiceManager;
 import org.emmef.servicemanager.ProviderVisitor;
-import org.emmef.servicemanager.ProviderVisitor.VisitState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SoundSourceAndSinkManager extends AbstractServiceManager<SoundSourceAndSinkProvider>  {
-	public static final Logger log = Logger.getDefault();
+	private static final Logger log = LoggerFactory.getLogger(SoundSourceAndSinkManager.class);
 	public static final SoundSourceAndSinkManager instance = new SoundSourceAndSinkManager();
 	
 	public SoundSourceAndSinkManager() {
@@ -77,7 +77,7 @@ public class SoundSourceAndSinkManager extends AbstractServiceManager<SoundSourc
 	private <T, V> V visit(final URI uri, final T argument, final Functor<T, V> functor) {
 		final Object result[] = new Object[1];
 		
-		VisitState visitResult = visit(new ProviderVisitor<SoundSourceAndSinkProvider>() {
+		ProviderVisitor.VisitState visitResult = visit(new ProviderVisitor<SoundSourceAndSinkProvider>() {
 
 			@Override
 			public ProviderVisitor.VisitState visit(List<SoundSourceAndSinkProvider> list) {
