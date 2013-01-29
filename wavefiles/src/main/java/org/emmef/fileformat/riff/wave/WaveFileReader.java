@@ -11,10 +11,10 @@ import org.emmef.audio.format.AudioFormat;
 import org.emmef.audio.format.SoundMetrics;
 import org.emmef.audio.frame.Whence;
 import org.emmef.audio.nodes.SoundSource;
-import org.emmef.fileformat.iff.ContentChunk;
-import org.emmef.fileformat.iff.InterchangeChunk;
-import org.emmef.fileformat.iff.InterchangeFormatException;
-import org.emmef.fileformat.iff.parse.Parser;
+import org.emmef.fileformat.interchange.ChunkParseException;
+import org.emmef.fileformat.interchange.ContentChunk;
+import org.emmef.fileformat.interchange.InterchangeChunk;
+import org.emmef.fileformat.interchange.Reader;
 import org.emmef.fileformat.riff.RiffTypeFactory;
 import org.emmef.fileformat.riff.WaveBuilderFactory;
 import org.emmef.samples.codec.FrameReader;
@@ -30,7 +30,7 @@ class WaveFileReader implements SoundSource {
 	private final long frameCount;
 	private final List<InterchangeChunk> readChunks;
 	
-	WaveFileReader(File file, int bufferSize) throws FileNotFoundException, IOException, InterchangeFormatException {
+	WaveFileReader(File file, int bufferSize) throws FileNotFoundException, IOException, ChunkParseException {
 		Preconditions.checkNotNull(file, "file");
 		if (bufferSize < 16) {
 			throw new IllegalArgumentException("Need a buffer of at least 16 bytes");
@@ -43,7 +43,7 @@ class WaveFileReader implements SoundSource {
 			AudioFactChunk factChunk = null;
 			ContentChunk dataChunk = null;
 			
-			readChunks = Parser.readChunks(RiffTypeFactory.INSTACE, stream);
+			readChunks = Reader.readChunks(RiffTypeFactory.INSTACE, stream);
 			for (InterchangeChunk chunk : readChunks) {
 				System.out.println("CHUNK " + chunk);
 				String chunkId = chunk.getDefinition().getIdentifier();

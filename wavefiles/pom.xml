@@ -38,8 +38,8 @@
 	</build>
 	<dependencies>
 		<dependency>
-			<groupId>org.emmef</groupId>
-			<artifactId>interchange-file-format</artifactId>
+			<groupId>org.emmef.config</groupId>
+			<artifactId>simplelogger</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>

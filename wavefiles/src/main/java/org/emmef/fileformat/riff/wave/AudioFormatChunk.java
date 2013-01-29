@@ -5,12 +5,12 @@ import java.util.Collections;
 import java.util.List;
 
 import org.emmef.audio.format.AudioFormat;
-import org.emmef.fileformat.iff.ContentChunk;
-import org.emmef.fileformat.iff.InterchangeChunk;
-import org.emmef.fileformat.iff.TypeChunk;
-import org.emmef.fileformat.iff.InterchangeChunk.ContentBuilder;
+import org.emmef.fileformat.interchange.ContentChunk;
+import org.emmef.fileformat.interchange.InterchangeChunk;
+import org.emmef.fileformat.interchange.InterchangeChunk.ContentBuilder;
+import org.emmef.fileformat.interchange.TypeChunk;
 import org.emmef.fileformat.riff.WaveBuilderFactory;
-import org.emmef.serialization.Serialize;
+import org.emmef.samples.serialization.Serialize;
 import org.emmef.utils.Preconditions;
 
 public class AudioFormatChunk extends InterpretedContentChunk {

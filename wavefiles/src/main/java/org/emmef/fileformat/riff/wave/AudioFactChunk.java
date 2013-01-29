@@ -1,6 +1,6 @@
 package org.emmef.fileformat.riff.wave;
 
-import org.emmef.fileformat.iff.ContentChunk;
+import org.emmef.fileformat.interchange.ContentChunk;
 
 
 public class AudioFactChunk extends InterpretedContentChunk {

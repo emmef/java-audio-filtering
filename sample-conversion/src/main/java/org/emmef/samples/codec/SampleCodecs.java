@@ -4,8 +4,8 @@ import static org.emmef.samples.codec.SampleScales.*;
 
 import java.nio.ByteBuffer;
 
-import org.emmef.serialization.Deserialize;
-import org.emmef.serialization.Serialize;
+import org.emmef.samples.serialization.Deserialize;
+import org.emmef.samples.serialization.Serialize;
 
 public enum SampleCodecs implements SampleCodec {
 	SIGNED_8() {
