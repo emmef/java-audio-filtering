@@ -1,4 +1,4 @@
-package org.emmef.fileformat.interchange;
+package org.emmef.fileformat.iff;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -26,12 +26,13 @@ public class InterchangeHelper {
 	 * @param character character to verify
 	 * 
 	 * @return a valid chunk identifier character
+	 * @throws InvalidChunkIdentifierException
 	 * @throws IllegalArgumentException if the character is not a valid identifier character.
 	 * @see isValidChunkIdentifierCharacter
 	 */
-	public static char validChunkIdentifierCharacter(char character) {
+	public static char validChunkIdentifierCharacter(char character) throws InvalidChunkIdentifierException {
 		if (!isValidChunkIdentifierCharacter(character)) {
-			throw new IllegalArgumentException("Invalid character (0x" + Integer.toHexString(character) + ") in identifier");
+			throw new InvalidChunkIdentifierException("Invalid character (0x" + Integer.toHexString(character) + ") in identifier");
 		}
 		
 		return character;
@@ -43,10 +44,11 @@ public class InterchangeHelper {
 	 * @param identifier identifier to be verified
 	 * 
 	 * @return the valid identifier
+	 * @throws InvalidChunkIdentifierException
 	 * @throws NullPointerException if the identifier is {@code null}
 	 * @throws IllegalArgumentException if the identifier is not valid
 	 */
-	public static String verifiedChunkIdentifier(String identifier) {
+	public static String verifiedChunkIdentifier(String identifier) throws InvalidChunkIdentifierException {
 		Preconditions.checkNotNull(identifier, "identifier");
 		
 		if (identifier.length() != 4) {
@@ -69,6 +71,7 @@ public class InterchangeHelper {
 	 *            position from which to read the identifier
 	 * 
 	 * @return a valid identifier
+	 * @throws InvalidChunkIdentifierException
 	 * @throws NullPointerException
 	 *             if the array is {@code null}
 	 * @throws IllegalArgumentException
@@ -76,7 +79,7 @@ public class InterchangeHelper {
 	 *             characters according to
 	 *             {@link isValidChunkIdentifierCharacter}
 	 */
-	public static String createIdentifier(char[] characters, int offset) {
+	public static String createIdentifier(char[] characters, int offset) throws InvalidChunkIdentifierException {
 		Preconditions.checkNotNull(characters, "Identifier characters");
 		Preconditions.checkOffsetAndCount(characters.length, offset, 4);
 		
@@ -97,6 +100,7 @@ public class InterchangeHelper {
 	 *            position from which to read the identifier
 	 * 
 	 * @return a valid identifier
+	 * @throws InvalidChunkIdentifierException
 	 * @throws NullPointerException
 	 *             if the array is {@code null}
 	 * @throws IllegalArgumentException
@@ -104,7 +108,7 @@ public class InterchangeHelper {
 	 *             characters according to
 	 *             {@link isValidChunkIdentifierCharacter}
 	 */
-	public static String createIdentifier(byte[] characters, int offset) {
+	public static String createIdentifier(byte[] characters, int offset) throws InvalidChunkIdentifierException {
 		Preconditions.checkNotNull(characters, "Identifier characters");
 		Preconditions.checkOffsetAndCount(characters.length, offset, 4);
 		
@@ -123,6 +127,7 @@ public class InterchangeHelper {
 	 *            input stream to read characters from
 	 * 
 	 * @return a valid identifier
+	 * @throws InvalidChunkIdentifierException
 	 * @throws NullPointerException
 	 *             if the stream is {@code null}
 	 * @throws IllegalArgumentException
@@ -130,7 +135,7 @@ public class InterchangeHelper {
 	 *             characters according to
 	 *             {@link isValidChunkIdentifierCharacter}
 	 */
-	public static String createIdentifier(InputStream stream) throws IOException {
+	public static String createIdentifier(InputStream stream) throws IOException, InvalidChunkIdentifierException {
 		Preconditions.checkNotNull(stream, "stream");
 		
 		StringBuilder id = new StringBuilder(4);
@@ -144,6 +149,19 @@ public class InterchangeHelper {
 		}
 		
 		return id.toString();
+	}
+
+	public static String verifiedContentTypeIdentifier(String contentType) throws InvalidContentTypeIdentfierException {
+		try {
+			return verifiedChunkIdentifier(contentType);
+		}
+		catch (InvalidChunkIdentifierException e) {
+			throw new InvalidContentTypeIdentfierException(e);
+		}
+	}
+
+	public static String createContentTypeIdentifier(InputStream stream) throws InvalidChunkIdentifierException, IOException {
+		return createIdentifier(stream);
 	}
 
 }

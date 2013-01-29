@@ -1,4 +1,4 @@
-package org.emmef.fileformat.interchange;
+package org.emmef.fileformat.iff;
 
 import org.emmef.samples.serialization.Endian;
 import org.emmef.utils.Preconditions;
@@ -16,7 +16,7 @@ import org.emmef.utils.Preconditions;
 public class TypeDefinition extends InterchangeDefinition {
 	private final Endian endian;
 
-	public TypeDefinition(String identifier, Endian endian) {
+	public TypeDefinition(String identifier, Endian endian) throws InvalidChunkIdentifierException {
 		super(identifier);
 		Preconditions.checkNotNull(endian, "Endianness");
 		this.endian = endian;

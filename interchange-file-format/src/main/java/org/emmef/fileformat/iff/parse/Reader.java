@@ -1,24 +1,30 @@
-package org.emmef.fileformat.interchange;
+package org.emmef.fileformat.iff.parse;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.emmef.fileformat.interchange.InterchangeChunk.ContentBuilder;
-import org.emmef.fileformat.interchange.InterchangeChunk.TypeBuilder;
+import org.emmef.fileformat.iff.ContentChunk;
+import org.emmef.fileformat.iff.InterchangeChunk;
+import org.emmef.fileformat.iff.InterchangeChunk.ContentBuilder;
+import org.emmef.fileformat.iff.InterchangeChunk.TypeBuilder;
+import org.emmef.fileformat.iff.InterchangeFormatException;
+import org.emmef.fileformat.iff.InterchangeHelper;
+import org.emmef.fileformat.iff.TypeChunk;
 
 public class Reader {
 	
-	public static List<InterchangeChunk> readChunks(TypeResolver factory, InputStream stream) throws IOException, ChunkParseException {
+	public static List<InterchangeChunk> readChunks(TypeResolver factory, InputStream stream) throws IOException, InterchangeFormatException {
 		List<InterchangeChunk> result = new ArrayList<>();
 		String id = InterchangeHelper.createIdentifier(stream);
 		
 		TypeBuilderFactory contentTypeFactory = factory.get(id);
 		
 		if (contentTypeFactory == null) {
-			throw new ChunkNotRecognisedException(id);
+			throw new UnrecognizedTypeChunkException(id);
 		}
+		
 		TypeBuilder typeBuilder = contentTypeFactory.createBuilder().readContentLengthAndType(stream);
 		ContentBuilderFactory contentBuilderFactory = contentTypeFactory.getContentParser(typeBuilder.getContentType());
 		
@@ -45,7 +51,7 @@ public class Reader {
 				if (contentTypeFactory != null) {
 					return result;
 				}
-				throw new ChunkNotRecognisedException(id);
+				throw new UnrecognizedChunkException(id);
 			}
 		}
 		

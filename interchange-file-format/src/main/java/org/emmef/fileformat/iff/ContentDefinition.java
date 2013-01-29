@@ -1,4 +1,4 @@
-package org.emmef.fileformat.interchange;
+package org.emmef.fileformat.iff;
 
 import org.emmef.samples.serialization.Endian;
 
@@ -7,7 +7,7 @@ public final class ContentDefinition extends InterchangeDefinition {
 	private final Endian forcedEndian;
 	private final boolean preReadContent;
 
-	public ContentDefinition(String identifier, long childRelativeOffset, Endian forcedEndian, boolean preReadContent) {
+	public ContentDefinition(String identifier, long childRelativeOffset, Endian forcedEndian, boolean preReadContent) throws InvalidChunkIdentifierException {
 		super(identifier);
 		this.childRelativeOffset = childRelativeOffset;
 		this.forcedEndian = forcedEndian;

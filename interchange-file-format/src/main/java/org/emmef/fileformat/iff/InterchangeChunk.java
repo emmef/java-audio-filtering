@@ -1,4 +1,4 @@
-package org.emmef.fileformat.interchange;
+package org.emmef.fileformat.iff;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -209,17 +209,17 @@ public abstract class InterchangeChunk {
 			return this;
 		}
 		
-		public TypeBuilder readContentLengthAndType(InputStream stream) throws IOException {
+		public TypeBuilder readContentLengthAndType(InputStream stream) throws IOException, InvalidContentTypeIdentfierException, InvalidChunkIdentifierException {
 			checkContentNotSet();
 			readContentLength(stream);
-			contentType = InterchangeHelper.createIdentifier(stream);
+			contentType = InterchangeHelper.createContentTypeIdentifier(stream);
 			
 			return this;
 		}
 		
-		public TypeBuilder setContentType(String contentType) {
+		public TypeBuilder setContentType(String contentType) throws InvalidContentTypeIdentfierException {
 			checkContentNotSet();
-			contentType = InterchangeHelper.verifiedChunkIdentifier(contentType);
+			contentType = InterchangeHelper.verifiedContentTypeIdentifier(contentType);
 			
 			return this;
 		}

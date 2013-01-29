@@ -1,7 +1,4 @@
-package org.emmef.fileformat.interchange;
-
-import java.io.IOException;
-import java.io.InputStream;
+package org.emmef.fileformat.iff;
 
 import org.emmef.samples.serialization.Endian;
 
@@ -14,20 +11,8 @@ public abstract class InterchangeDefinition {
 	
 	private final String identifier;
 	
-	public InterchangeDefinition(String identifier) {
+	public InterchangeDefinition(String identifier) throws InvalidChunkIdentifierException {
 		this.identifier = InterchangeHelper.verifiedChunkIdentifier(identifier);
-	}
-
-	public InterchangeDefinition(char[] characters, int offset) {
-		identifier = InterchangeHelper.createIdentifier(characters, offset);
-	}
-	
-	public InterchangeDefinition(byte[] characters, int offset) {
-		identifier = InterchangeHelper.createIdentifier(characters, offset);
-	}
-	
-	public InterchangeDefinition(InputStream stream) throws IOException {
-		identifier = InterchangeHelper.createIdentifier(stream);
 	}
 	
 	/**

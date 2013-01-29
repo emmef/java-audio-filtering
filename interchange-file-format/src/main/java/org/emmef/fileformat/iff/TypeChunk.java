@@ -1,4 +1,4 @@
-package org.emmef.fileformat.interchange;
+package org.emmef.fileformat.iff;
 
 public final class TypeChunk extends InterchangeChunk {
 	private final String contentType;
