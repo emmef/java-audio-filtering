@@ -134,13 +134,13 @@ public class InterchangeHelper {
 		Preconditions.checkNotNull(stream, "stream");
 		
 		StringBuilder id = new StringBuilder(4);
-		
 		for (int i = 0; i < 4; i++) {
 			int read = stream.read();
 			if (read == -1) {
 				throw new EOFException("EOF while reading identifier");
 			}
-			id.append(validChunkIdentifierCharacter((char)stream.read()));
+			char character = (char)read;
+			id.append(validChunkIdentifierCharacter(character));
 		}
 		
 		return id.toString();

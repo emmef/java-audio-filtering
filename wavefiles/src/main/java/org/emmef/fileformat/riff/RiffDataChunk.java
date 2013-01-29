@@ -4,7 +4,6 @@ import org.emmef.samples.serialization.Deserialize;
 import org.emmef.samples.serialization.Serialize;
 
 public class RiffDataChunk extends RiffChunk {
-	private final byte[] buffer;
 
 	public RiffDataChunk(RiffChunk source, byte[] buffer) {
 		super(source);
@@ -17,6 +16,8 @@ public class RiffDataChunk extends RiffChunk {
 	protected final int getBufferSize() {
 		return buffer.length;
 	}
+	
+	private final byte[] buffer;
 	
 	protected final int getByteAt(int offset) {
 		return 0xff & Deserialize.read8(buffer, offset);

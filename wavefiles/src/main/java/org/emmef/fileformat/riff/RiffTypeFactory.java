@@ -10,7 +10,7 @@ public enum RiffTypeFactory implements TypeResolver {
 
 	@Override
 	public TypeBuilderFactory get(String identifier) {
-		if (!"RIFF".equals("identifier")) {
+		if (!"RIFF".equals(identifier)) {
 			return null;
 		}
 		

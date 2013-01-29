@@ -5,32 +5,33 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.emmef.audio.format.AudioFormat;
 import org.emmef.audio.format.SoundMetrics;
 import org.emmef.audio.frame.Whence;
 import org.emmef.audio.nodes.SoundSource;
+import org.emmef.fileformat.interchange.ChunkParseException;
+import org.emmef.fileformat.interchange.ContentChunk;
+import org.emmef.fileformat.interchange.InterchangeChunk;
+import org.emmef.fileformat.interchange.Reader;
 import org.emmef.fileformat.riff.AudioFactChunk;
-import org.emmef.fileformat.riff.RiffChunk;
-import org.emmef.fileformat.riff.RiffDataChunk;
-import org.emmef.fileformat.riff.RiffRootRecord;
+import org.emmef.fileformat.riff.RiffTypeFactory;
 import org.emmef.fileformat.riff.RiffUtils;
+import org.emmef.fileformat.riff.WaveBuilderFactory;
 import org.emmef.samples.codec.FrameReader;
 import org.emmef.samples.codec.SampleCodec;
 import org.emmef.samples.codec.SampleCodecs;
 
 class WaveFileReader implements SoundSource {
 	
-	private final byte[] buffer;
-	private final List<RiffChunk> chunks = new ArrayList<>();
 	private final AudioFormat audioFormat;
 	private final InputStream stream;
 	private final FrameReader frameReader;
 	private final long frameCount;
+	private final List<InterchangeChunk> readChunks;
 	
-	WaveFileReader(File file, int bufferSize) throws FileNotFoundException, IOException {
+	WaveFileReader(File file, int bufferSize) throws FileNotFoundException, IOException, ChunkParseException {
 		RiffUtils.checkNotNull(file, "file");
 		if (bufferSize < 16) {
 			throw new IllegalArgumentException("Need a buffer of at least 16 bytes");
@@ -39,40 +40,29 @@ class WaveFileReader implements SoundSource {
 		stream = new FileInputStream(file);
 		boolean ready = false;
 		try {
-			buffer = new byte[128];
-			
-			RiffRootRecord root = RiffUtils.readRootUnsafe(stream, buffer);
-			if (!WaveFileProvider.WAVE_FILE_FORMAT_IDENTIFIER.equals(root.getIdentifier())) {
-				throw new IllegalStateException("File is not a Wave file: format identifier=\"" + root.getIdentifier() + "\"");
-			}
-			
-			RiffChunk dataChunk = null;
-			AudioFactChunk factChunk = null;
 			AudioFormatChunk formatChunk = null;
-			long offset = 0;
-			while (dataChunk == null) {
-				RiffChunk header = RiffUtils.readChunkHeader(stream, buffer, root, offset);
-				if (WaveFileProvider.WAVE_AUDIO_DATA_IDENTIFIER.equals(header.getIdentifier())) {
-					dataChunk = header;
-					// currently, we are at the brink of reading actual data
-					break;
-				}
-				if (AudioFormatChunk.WAVE_AUDIO_FORMAT_IDENTIFIER.equals(header.getIdentifier())) {
-					if (formatChunk != null) {
-						throw new IllegalStateException("Second audio format chunk found at file offset " + header.getAbsoluteOffset());
-					}
-					formatChunk = new AudioFormatChunk(header, RiffUtils.readChunkData(stream, header, 40, 40));
-				}
-				else if (AudioFactChunk.CHUNK_ID.equals(header.getIdentifier())) {
-					if (factChunk != null) {
-						throw new IllegalStateException("Second audio fact chunk found at file offset " + header.getAbsoluteOffset());
-					}
-					factChunk = new AudioFactChunk(header, RiffUtils.readChunkData(stream, header, 4, 40));
+			AudioFactChunk factChunk = null;
+			ContentChunk dataChunk = null;
+			
+			readChunks = Reader.readChunks(RiffTypeFactory.INSTACE, stream);
+			for (InterchangeChunk chunk : readChunks) {
+				System.out.println("CHUNK " + chunk);
+				String chunkId = chunk.getDefinition().getIdentifier();
+				String formatId = WaveBuilderFactory.FMT_DEFINITION.getIdentifier();
+				if (formatId.equals(chunkId)) {
+					formatChunk = new AudioFormatChunk((ContentChunk)chunk);
 				}
 				else {
-					chunks.add(new RiffDataChunk(header, RiffUtils.readChunkData(stream, header, 10240, 1024000)));
+					System.out.println(chunkId.length() + " <-> " + formatId.length());
+					System.out.println("" + (int)chunkId.charAt(3) + " <-> " + (int)formatId.charAt(3));
+					
 				}
-				offset += header.getHeaderLength() + header.getContentLength();
+				if (chunkId.equals(WaveBuilderFactory.FACT_DEFINITION.getIdentifier())) {
+					factChunk = new AudioFactChunk((ContentChunk)chunk);
+				}
+				else if (chunkId.equals(WaveBuilderFactory.DATA_DEFINITION.getIdentifier())) {
+					dataChunk = (ContentChunk)chunk;
+				}
 			}
 			if (dataChunk == null) {
 				throw new IllegalArgumentException("Missing audio data chunk!");
@@ -93,7 +83,7 @@ class WaveFileReader implements SoundSource {
 		}
 	}
 
-	private long obtainValidatedNumberOfFrames(RiffChunk dataChunk, AudioFactChunk factChunk, AudioFormatChunk formatChunk, AudioFormat audioFormat) {
+	private long obtainValidatedNumberOfFrames(ContentChunk dataChunk, AudioFactChunk factChunk, AudioFormatChunk formatChunk, AudioFormat audioFormat) {
 		long frameCount;
 			int bytesPerFrame;
 			int bytesPerSample = audioFormat.getBytesPerSample();
@@ -106,7 +96,7 @@ class WaveFileReader implements SoundSource {
 		if (factChunk != null) {
 			long factFrames = factChunk.getSamplePerChannel();
 			if (factFrames > frameCount) {
-				throw new IllegalStateException("Number of frames in " + factChunk.getIdentifier() + "(" + factFrames + ") larger than number in " + dataChunk.getIdentifier() + "(" + frameCount + ")");
+				throw new IllegalStateException("Number of frames in " + factChunk.getIdentifier() + "(" + factFrames + ") larger than number in " + dataChunk.getDefinition().getIdentifier() + "(" + frameCount + ")");
 			}
 			frameCount = factFrames;
 		}
@@ -172,7 +162,7 @@ class WaveFileReader implements SoundSource {
 
 	@Override
 	public Object getMetaData() {
-		return null; // no additional meta data necessary.
+		return readChunks;
 	}
 
 	@Override

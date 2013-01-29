@@ -10,7 +10,7 @@ import org.emmef.fileformat.interchange.InterchangeChunk.TypeBuilder;
 
 public class Reader {
 	
-	public List<InterchangeChunk> readChunks(TypeResolver factory, ContentResolver contentResolver, InputStream stream) throws IOException, ChunkParseException {
+	public static List<InterchangeChunk> readChunks(TypeResolver factory, InputStream stream) throws IOException, ChunkParseException {
 		List<InterchangeChunk> result = new ArrayList<>();
 		String id = InterchangeHelper.createIdentifier(stream);
 		
@@ -25,6 +25,8 @@ public class Reader {
 		TypeChunk type = typeBuilder.build();
 		ContentChunk content = null;
 		
+		result.add(type);
+		
 		while (true) {
 			id = InterchangeHelper.createIdentifier(stream);
 			if (id == null) {
@@ -34,7 +36,7 @@ public class Reader {
 			if (contentFactory != null) {
 				content = linkContentChunk(stream, type, content, contentFactory);
 				result.add(content);
-				if (!content.getDefinition().preReadContent()) {
+				if (!content.getContentDefinition().preReadContent()) {
 					return result; // cannot read past here...
 				}
 			}
@@ -50,14 +52,14 @@ public class Reader {
 		return result;
 	}
 
-	private ContentChunk linkContentChunk(InputStream stream, TypeChunk type, ContentChunk content, ContentBuilder contentFactory) throws IOException {
-		contentFactory.readContentLength(stream);
+	private static ContentChunk linkContentChunk(InputStream stream, TypeChunk type, ContentChunk content, ContentBuilder contentFactory) throws IOException {
 		if (content == null) {
 			contentFactory.parent(type);
 		}
 		else {
 			contentFactory.sibling(content);
 		}
+		contentFactory.readContentLength(stream);
 		contentFactory.readContent(stream);
 		ContentChunk createdChunk = contentFactory.build();
 		return createdChunk;

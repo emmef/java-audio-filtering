@@ -41,10 +41,10 @@ public class TypeDefinition extends InterchangeDefinition {
 	public String toString() {
 		StringBuilder toString = new StringBuilder(40);
 		
-		toString.append(getIdentifier());
+		toString.append(getIdentifier()).append("(");
 		
 		if (endian != null) {
-			toString.append("; endian=").append(endian);
+			toString.append("endian=").append(endian);
 		}
 		toString.append(')');
 		

@@ -29,7 +29,29 @@ public final class ContentChunk extends InterchangeChunk {
 		return content;
 	}
 	
-	public final ContentDefinition getDefinition() {
-		return (ContentDefinition)getDefinitionUnspecialized();
+	public final ContentDefinition getContentDefinition() {
+		return (ContentDefinition)getDefinition();
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder text = new StringBuilder();
+		text.append(getContentDefinition().getIdentifier()).append("[");
+		if (getContentDefinition().getEndian() != null) {
+			text.append("endianness=").append(getContentDefinition().getEndian()).append("; ");
+		}
+		text.append("content-length=").append(getContentLength());
+		if (getOffset() > 0) {
+			text.append("; offset=").append(getOffset());
+		}
+		if (getContentDefinition().preReadContent()) {
+			text.append("; pre-read");
+		}
+		text.append("]");
+		if (getRelation() != null) {
+			text.append(" ").append(getRelation()).append(" ").append(getRelationInstanceInternal());
+		}
+		
+		return text.toString();
 	}
 }

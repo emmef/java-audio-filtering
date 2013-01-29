@@ -5,12 +5,15 @@ import java.util.Collections;
 import java.util.List;
 
 import org.emmef.audio.format.AudioFormat;
-import org.emmef.fileformat.riff.RiffChunk;
-import org.emmef.fileformat.riff.RiffDataChunk;
+import org.emmef.fileformat.interchange.ContentChunk;
+import org.emmef.fileformat.interchange.InterchangeChunk;
+import org.emmef.fileformat.interchange.InterchangeChunk.ContentBuilder;
+import org.emmef.fileformat.interchange.TypeChunk;
+import org.emmef.fileformat.riff.WaveBuilderFactory;
 import org.emmef.samples.serialization.Serialize;
 import org.emmef.utils.Preconditions;
 
-public class AudioFormatChunk extends RiffDataChunk {
+public class AudioFormatChunk extends InterpretedContentChunk {
 	public static final List<Byte> TYPE_GUID_PADDING = Collections.unmodifiableList(Arrays.asList(
 			(byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x10, (byte)0x00, (byte)0x80,
 			(byte)0x00, (byte)0x00, (byte)0xAA, (byte)0x00, (byte)0x38, (byte)0x9B, (byte)0x71));
@@ -35,11 +38,8 @@ public class AudioFormatChunk extends RiffDataChunk {
 	public static final String WAVE_AUDIO_FORMAT_IDENTIFIER = "fmt ";
 	public static final int L = WAVE_AUDIO_FORMAT_IDENTIFIER.length();
 
-	AudioFormatChunk(RiffChunk source, byte[] buffer) {
-		super(source, buffer);
-		if (!WAVE_AUDIO_FORMAT_IDENTIFIER.equals(source.getIdentifier())) {
-			throw new IllegalArgumentException("Chunk name must be \"" + WAVE_AUDIO_FORMAT_IDENTIFIER + "\", not \"" + source.getIdentifier() + "\"");
-		}
+	AudioFormatChunk(ContentChunk chunk) {
+		super(chunk);
 	}
 	
 	/**
@@ -49,13 +49,20 @@ public class AudioFormatChunk extends RiffDataChunk {
 	 * @param source
 	 * @param format
 	 */
-	public static AudioFormatChunk fromFormat(RiffChunk source, AudioFormat format) {
+	public static AudioFormatChunk fromFormat(InterchangeChunk relation, AudioFormat format) {
+		Preconditions.checkNotNull(relation, "Parent or sibling chunk");
 		byte[] chunkData = createChunkData(Preconditions.checkNotNull(format, "format"));
-		if (chunkData.length != source.getContentLength()) {
-			RiffChunk clonedSource = new RiffChunk(source.getParent(), source.getIdentifier(), source.getRelativeOffset(), chunkData.length);
-			return new AudioFormatChunk(clonedSource, chunkData);
+		ContentBuilder builder = InterchangeChunk.contentBuilder(WaveBuilderFactory.FMT_DEFINITION);
+		
+		builder.setContent(chunkData, false);
+		if (relation instanceof TypeChunk) {
+			builder.parent(relation);
 		}
-		return new AudioFormatChunk(source, chunkData);
+		else {
+			builder.sibling((ContentChunk)relation);
+		}
+		
+		return new AudioFormatChunk(builder.build());
 	}
 
 	public FormatType getFormatType() {
@@ -141,7 +148,7 @@ public class AudioFormatChunk extends RiffDataChunk {
 	}
 	
 	public int getExtendedFormatSize() {
-		return getBufferSize() >= 18 ? getWordAt(OFFSET_EXTENDED_FORMAT_LENGTH) : -1;
+		return getContentLength() >= 18 ? getWordAt(OFFSET_EXTENDED_FORMAT_LENGTH) : -1;
 	}
 	
 	public int getExtendedValidBitsPerSample() {
@@ -150,7 +157,7 @@ public class AudioFormatChunk extends RiffDataChunk {
 	}
 	
 	public boolean hasExtendedChannelMask() {
-		return getBufferSize() >= OFFSET_EXTENDED_FORMAT_SUB_FORMAT;
+		return getContentLength() >= OFFSET_EXTENDED_FORMAT_SUB_FORMAT;
 	}
 	
 	public long getExtendedChannelMask() {

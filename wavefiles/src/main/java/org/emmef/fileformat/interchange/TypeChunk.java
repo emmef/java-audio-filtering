@@ -16,11 +16,31 @@ public final class TypeChunk extends InterchangeChunk {
 		throw new IllegalStateException(this + " has no sibling");
 	}
 	
-	public final ContentDefinition getDefinition() {
-		return (ContentDefinition)getDefinitionUnspecialized();
+	public final TypeDefinition getTypeDefinition() {
+		return (TypeDefinition)getDefinition();
 	}
 
 	public String getContentType() {
 		return contentType;
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder text = new StringBuilder();
+		text.append(getTypeDefinition().getIdentifier()).append("[");
+		if (getTypeDefinition().getEndian() != null) {
+			text.append("endianness=").append(getTypeDefinition().getEndian()).append("; ");
+		}
+		text.append("content-type=").append(getContentType());
+		text.append("; content-length=").append(getContentLength());
+		if (getOffset() > 0) {
+			text.append("; offset=").append(getOffset());
+		}
+		text.append("]");
+		if (getRelation() != null) {
+			text.append(" ").append(getRelation()).append(" ").append(getRelationInstanceInternal());
+		}
+		
+		return text.toString();
 	}
 }

@@ -11,6 +11,7 @@ import org.emmef.audio.nodes.SoundSource;
 import org.emmef.audio.servicemanager.SoundFormatUnsupportedException;
 import org.emmef.audio.servicemanager.SoundSourceAndSinkProvider;
 import org.emmef.audio.servicemanager.SoundUriUnsupportedException;
+import org.emmef.fileformat.interchange.ChunkParseException;
 
 public class WaveFileProvider implements SoundSourceAndSinkProvider {
 	public static final String WAVE_FILE_FORMAT_IDENTIFIER = "WAVE";
@@ -39,6 +40,9 @@ public class WaveFileProvider implements SoundSourceAndSinkProvider {
 		}
 		catch (IOException e) {
 			throw new IllegalStateException(e);
+		}
+		catch (ChunkParseException e) {
+			throw new SoundUriUnsupportedException(e);
 		}
 		catch (RuntimeException e) {
 			throw new SoundUriUnsupportedException(e);
@@ -81,8 +85,8 @@ public class WaveFileProvider implements SoundSourceAndSinkProvider {
 		}
 	}
 	
-	public static void main(String[] args) throws FileNotFoundException, IOException {
-		String pathname = "test.wav";
+	public static void main(String[] args) throws FileNotFoundException, IOException, ChunkParseException {
+		String pathname = "/home/michel/Music/high-definition/Test_File_2_0_STEREO_PCM.wav";
 		if (args.length > 0) {
 			pathname = args[0];
 		}

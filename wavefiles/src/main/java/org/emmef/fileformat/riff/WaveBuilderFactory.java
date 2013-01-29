@@ -6,16 +6,15 @@ import org.emmef.fileformat.interchange.ContentDefinition;
 import org.emmef.fileformat.interchange.InterchangeChunk;
 import org.emmef.fileformat.interchange.InterchangeChunk.ContentBuilder;
 
-enum WaveBuilderFactory implements ContentBuilderFactory {
+public enum WaveBuilderFactory implements ContentBuilderFactory {
 	INSTANCE;
 	
-	static final ContentDefinition FMT_DEFINITION = new ContentDefinition("fmt\u0000", 0, null, true);
-	static final ContentDefinition FACT_DEFINITION = new ContentDefinition("fact", 0, null, true);
-	static final ContentDefinition DATA_DEFINITION = new ContentDefinition("data", 0, null, false);
+	public static final ContentDefinition FMT_DEFINITION = new ContentDefinition("fmt ", 0, null, true);
+	public static final ContentDefinition FACT_DEFINITION = new ContentDefinition("fact", 0, null, true);
+	public static final ContentDefinition DATA_DEFINITION = new ContentDefinition("data", 0, null, false);
 	
 	@Override
-	public ContentBuilder create(String id)
-			throws ChunkNotRecognisedException {
+	public ContentBuilder create(String id) throws ChunkNotRecognisedException {
 		if (FMT_DEFINITION.getIdentifier().equals(id)) {
 			return InterchangeChunk.contentBuilder(FMT_DEFINITION);
 		}

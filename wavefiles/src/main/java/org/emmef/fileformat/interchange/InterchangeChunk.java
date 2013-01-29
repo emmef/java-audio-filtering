@@ -48,6 +48,10 @@ public abstract class InterchangeChunk {
 		this.relationInstance = relationInstance;
 	}
 	
+	public final String getIdentifier() {
+		return definition.getIdentifier();
+	}
+	
 	public final long getContentLength() {
 		return contentLength;
 	}
@@ -66,7 +70,7 @@ public abstract class InterchangeChunk {
 		if (relation == ChunkRelation.PARENT) {
 			return
 					InterchangeDefinition.CONTENT_RELATIVE_OFFSET +
-					relationInstance.getDefinitionUnspecialized().childRelativeOffset() +
+					relationInstance.getDefinition().childRelativeOffset() +
 					relationInstance.getOffset();
 		}
 		return 0;
@@ -77,8 +81,8 @@ public abstract class InterchangeChunk {
 		if (endian != null) {
 			return endian;
 		}
-		if (relation == ChunkRelation.PARENT) {
-			return relationInstance.getDefinitionUnspecialized().getEndian();
+		if (relation != null) {
+			return relationInstance.getEndian();
 		}
 		
 		return null;
@@ -99,7 +103,7 @@ public abstract class InterchangeChunk {
 		return relationInstance;
 	}
 	
-	protected final InterchangeDefinition getDefinitionUnspecialized() {
+	public final InterchangeDefinition getDefinition() {
 		return definition;
 	}
 	
@@ -162,20 +166,22 @@ public abstract class InterchangeChunk {
 		
 		protected Endian getEndian() {
 			Endian endian = definition.getEndian();
-			if (endian == null && relation == ChunkRelation.PARENT) {
-				endian = instance.getDefinitionUnspecialized().getEndian();
-			}
-			if (endian == null) {
-				throw new IllegalStateException("Endianness not defined: cannot read chunk length");
+			
+			if (endian == null && relation != null) {
+				endian = instance.getEndian();
 			}
 			
-			return null;
+			if (endian == null) {
+				throw new IllegalStateException(getDefinition() + ": endianness not defined: cannot read chunk length");
+			}
+			
+			return endian;
 		}
 		
 		protected void setRelation(ChunkRelation relation, InterchangeChunk relationInstance) {
-			Preconditions.checkNotNull(instance, "Relation instance");
-			if (relation != null) {
-				throw new IllegalStateException("Relation already set: " + relation + " " + relationInstance);
+			Preconditions.checkNotNull(relationInstance, "Relation instance");
+			if (this.relation != null) {
+				throw new IllegalStateException(getDefinition() + "Relation already set: " + relation + " " + relationInstance);
 			}
 			this.relation = relation;
 			instance = relationInstance;
@@ -231,6 +237,7 @@ public abstract class InterchangeChunk {
 	
 	public static final class ContentBuilder extends AbstractBuilder<ContentChunk, ContentDefinition> {
 
+		private static final byte[] EMPTY_CONTENT = new byte[0];
 		private byte[] content;
 
 		ContentBuilder(ContentDefinition definition) {
@@ -271,9 +278,7 @@ public abstract class InterchangeChunk {
 		}
 
 		private void createContentBuffer() {
-			if (content != null) {
-				throw new IllegalStateException(getDefinition() + ": content already ead");
-			}
+			checkNoContent();
 			allocateContent();
 		}
 
@@ -285,6 +290,19 @@ public abstract class InterchangeChunk {
 				throw new IllegalStateException(getDefinition() + ": cannot read " + getContentLength() + " bytes of content: maximum is " + MAX_READ_LENGTH + " bytes");
 			}
 			content = new byte[(int)getContentLength()];
+		}
+
+		public ContentBuilder setContent(byte[] chunkData, boolean clone) {
+			contentLength(chunkData != null ? chunkData.length : 0);
+			content = chunkData != null ? clone ? chunkData.clone() : chunkData : EMPTY_CONTENT;
+			
+			return this;
+		}
+		
+		private void checkNoContent() {
+			if (content != null) {
+				throw new IllegalStateException(getDefinition() + ": content already ead");
+			}
 		}
 	}
 }
