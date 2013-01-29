@@ -29,12 +29,12 @@ public class LimitedInputStreamTest {
 		LARGE_STREAM.resetStream();
 		LIMIT_STREAM.resetStream();
 		SMALL_STREAM.resetStream();
-		streamUsingLargeStream = new LimitedInputStream(LARGE_STREAM, LIMIT, EndOfFileAction.CONTINUE);
-		streamUsingEqualStream = new LimitedInputStream(LIMIT_STREAM, LIMIT, EndOfFileAction.CONTINUE);
-		streamUsingSmallStream = new LimitedInputStream(SMALL_STREAM, LIMIT, EndOfFileAction.CONTINUE);
-		streamUsingLargeStreamThrows = new LimitedInputStream(LARGE_STREAM, LIMIT, EndOfFileAction.EOF);
-		streamUsingEqualStreamThrows = new LimitedInputStream(LIMIT_STREAM, LIMIT, EndOfFileAction.EOF);
-		streamUsingSmallStreamThrows = new LimitedInputStream(SMALL_STREAM, LIMIT, EndOfFileAction.EOF);
+		streamUsingLargeStream = new LimitedInputStream(LARGE_STREAM, LIMIT, EndOfFile.Event.CONTINUE);
+		streamUsingEqualStream = new LimitedInputStream(LIMIT_STREAM, LIMIT, EndOfFile.Event.CONTINUE);
+		streamUsingSmallStream = new LimitedInputStream(SMALL_STREAM, LIMIT, EndOfFile.Event.CONTINUE);
+		streamUsingLargeStreamThrows = new LimitedInputStream(LARGE_STREAM, LIMIT, EndOfFile.Event.THROW);
+		streamUsingEqualStreamThrows = new LimitedInputStream(LIMIT_STREAM, LIMIT, EndOfFile.Event.THROW);
+		streamUsingSmallStreamThrows = new LimitedInputStream(SMALL_STREAM, LIMIT, EndOfFile.Event.THROW);
 	}
 	
 	@After

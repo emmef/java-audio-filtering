@@ -12,10 +12,10 @@ import java.io.InputStream;
  * underlying stream supports them.
  */
 public class LimitedInputStream extends InputStream {
-	private final long readLimit;
-	private long totalReads;
 	private final InputStream delegate;
-	private final EndOfFileAction endOfFileAction;
+	private final long readLimit;
+	private final EndOfFile.Event endOfFileEvent;
+	private long totalReads;
 
 	/**
 	 * Creates a limited input stream that reads at most {@long readLimit} bytes
@@ -34,7 +34,7 @@ public class LimitedInputStream extends InputStream {
 	 *            from the stream is lower than the expected number in one of
 	 *            the read methods.
 	 */
-	public LimitedInputStream(InputStream delegate, long readLimit, EndOfFileAction endOfFileAction) {
+	public LimitedInputStream(InputStream delegate, long readLimit, EndOfFile.Event endOfFileAction) {
 		if (delegate == null) {
 			throw new IllegalArgumentException("Delegate inputstream cannot be null");
 		}
@@ -43,7 +43,7 @@ public class LimitedInputStream extends InputStream {
 		}
 		this.readLimit = readLimit;
 		this.delegate = Preconditions.checkNotNull(delegate, "delegate");;
-		this.endOfFileAction = Preconditions.checkNotNull(endOfFileAction, "endOfFileAction");
+		endOfFileEvent = Preconditions.checkNotNull(endOfFileAction, "endOfFileAction");
 	}
 	
 	/**
@@ -59,7 +59,7 @@ public class LimitedInputStream extends InputStream {
 	 *            maximum number of bytes read or skipped from the stream
 	 */
 	public LimitedInputStream(InputStream delegate, long readLimit) {
-		this(delegate, readLimit, EndOfFileAction.EOF);
+		this(delegate, readLimit, EndOfFile.Event.THROW);
 	}
 	
 	/**
@@ -76,7 +76,7 @@ public class LimitedInputStream extends InputStream {
 				totalReads++;
 			}
 			else {
-				endOfFileAction.onEndOfFile(1, 0);
+				EndOfFile.Handler.handle(endOfFileEvent, 1, 0);
 			}
 
 			return read;
@@ -153,7 +153,7 @@ public class LimitedInputStream extends InputStream {
 		totalReads += skips;
 		
 		if (skips < expectedSkips) {
-			endOfFileAction.onEndOfFile(expectedSkips, skips);
+			EndOfFile.Handler.handle(endOfFileEvent, expectedSkips, skips);
 		}
 		
 		return skips;

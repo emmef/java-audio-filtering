@@ -2,13 +2,13 @@ package org.emmef.samples.codec;
 
 import java.io.EOFException;
 
-import org.emmef.utils.EndOfFileAction;
+import org.emmef.utils.EndOfFile;
 
 /**
  * {@link EndOfFileAction} that throws an {@link EOFException} if the number of
  * bytes read was not a multiple of the number of bytes per frame.
  */
-public final class WholeFrameEndOfFileAction implements EndOfFileAction {
+public final class WholeFrameEndOfFileAction implements EndOfFile.Event {
 	private static final WholeFrameEndOfFileAction[] CACHE = createCache();
 	
 	private static WholeFrameEndOfFileAction[] createCache() {
@@ -36,9 +36,11 @@ public final class WholeFrameEndOfFileAction implements EndOfFileAction {
 	}
 	
 	@Override
-	public void onEndOfFile(long requestedNumber, long actualNumber) throws EOFException {
+	public EndOfFile.Result onEndOfFile(long requestedNumber, long actualNumber) throws EOFException {
 		if (actualNumber % bytesPerFrame != 0) {
-			throw new EOFException("Incomplete frame");
+			return new EndOfFile.Result.Throw("Incomplete frame read");
 		}
+		
+		return EndOfFile.Result.CONTINUE;
 	}
 }
