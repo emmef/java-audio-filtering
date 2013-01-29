@@ -4,12 +4,12 @@ import org.emmef.audio.format.AudioFormat;
 import org.emmef.audio.format.AudioFormatSampleRateSetter;
 import org.emmef.audio.format.AudioFormats;
 import org.emmef.audio.format.SpeakerLocations;
-import org.emmef.fileformat.riff.RiffUtils;
+import org.emmef.utils.Preconditions;
 
 public class AudioFormatChunks {
 	
 	public static final AudioFormat fromChunks(AudioFormatChunk formatChunk) {
-		RiffUtils.checkNotNull(formatChunk, "Chunk cannot be null");
+		Preconditions.checkNotNull(formatChunk, "Chunk cannot be null");
 		switch (formatChunk.getFormatType()) {
 		case WAVE_FORMAT_EXTENSIBLE:
 			return fromChunkExtensible(formatChunk);
@@ -26,7 +26,7 @@ public class AudioFormatChunks {
 		int containerBytesPerSample = chunk.getContainerBytesPerSample();
 		int specifiedBitsPerSample = chunk.getBitsPerSample();
 		
-		int roundedUpBytesPerSample = (specifiedBitsPerSample + 7) >> 3;
+		int roundedUpBytesPerSample = specifiedBitsPerSample + 7 >> 3;
 		
 		if (roundedUpBytesPerSample != containerBytesPerSample) {
 			AudioFormat format = getKnownMismatchExceptionFormat(chunk, containerBytesPerSample, specifiedBitsPerSample);
@@ -50,7 +50,7 @@ public class AudioFormatChunks {
 			throw new IllegalArgumentException("Invalid bytes per fample for float data: " + containerBytesPerSample);
 		}
 		
-		int roundedUpBytesPerSample = (specifiedBitsPerSample + 7) >> 3;
+		int roundedUpBytesPerSample = specifiedBitsPerSample + 7 >> 3;
 		
 		if (roundedUpBytesPerSample != containerBytesPerSample) {
 			AudioFormat format = getKnownMismatchExceptionFormat(chunk, containerBytesPerSample, specifiedBitsPerSample);

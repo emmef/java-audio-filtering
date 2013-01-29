@@ -15,13 +15,12 @@ import org.emmef.fileformat.interchange.ChunkParseException;
 import org.emmef.fileformat.interchange.ContentChunk;
 import org.emmef.fileformat.interchange.InterchangeChunk;
 import org.emmef.fileformat.interchange.Reader;
-import org.emmef.fileformat.riff.AudioFactChunk;
 import org.emmef.fileformat.riff.RiffTypeFactory;
-import org.emmef.fileformat.riff.RiffUtils;
 import org.emmef.fileformat.riff.WaveBuilderFactory;
 import org.emmef.samples.codec.FrameReader;
 import org.emmef.samples.codec.SampleCodec;
 import org.emmef.samples.codec.SampleCodecs;
+import org.emmef.utils.Preconditions;
 
 class WaveFileReader implements SoundSource {
 	
@@ -32,7 +31,7 @@ class WaveFileReader implements SoundSource {
 	private final List<InterchangeChunk> readChunks;
 	
 	WaveFileReader(File file, int bufferSize) throws FileNotFoundException, IOException, ChunkParseException {
-		RiffUtils.checkNotNull(file, "file");
+		Preconditions.checkNotNull(file, "file");
 		if (bufferSize < 16) {
 			throw new IllegalArgumentException("Need a buffer of at least 16 bytes");
 		}
