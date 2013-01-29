@@ -1,23 +1,24 @@
 package org.emmef.fileformat.riff;
 
-import org.emmef.fileformat.interchange.InterchangeHelper;
-import org.emmef.fileformat.interchange.TypeDefinition;
-import org.emmef.samples.serialization.Endian;
+import org.emmef.fileformat.iff.InvalidChunkIdentifierException;
+import org.emmef.fileformat.iff.TypeDefinition;
+import org.emmef.serialization.Endian;
 
 public final class RiffDefinition extends TypeDefinition {
-	public static final String RIFF_IDENTIFIER = InterchangeHelper.verifiedChunkIdentifier("RIFF");
-
-	public RiffDefinition() {
+	public static final String RIFF_IDENTIFIER = "RIFF";
+	
+	public static final RiffDefinition INSTANCE;
+	
+	private RiffDefinition() throws InvalidChunkIdentifierException {
 		super(RIFF_IDENTIFIER, Endian.LITTLE);
 	}
 	
-	/**
-	 * {@inheritDoc}
-	 * <p>
-	 * The RIFF format used little-endian representaton of multi-bye values.
-	 */
-	@Override
-	public Endian getEndian() {
-		return Endian.LITTLE;
+	static {
+		try {
+			INSTANCE = new RiffDefinition();
+		}
+		catch (InvalidChunkIdentifierException e) {
+			throw new IllegalStateException(e);
+		}
 	}
 }

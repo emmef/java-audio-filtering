@@ -1,12 +1,10 @@
 package org.emmef.fileformat.riff;
 
-import org.emmef.fileformat.interchange.TypeBuilderFactory;
-import org.emmef.fileformat.interchange.TypeResolver;
+import org.emmef.fileformat.iff.parse.TypeBuilderFactory;
+import org.emmef.fileformat.iff.parse.TypeResolver;
 
 public enum RiffTypeFactory implements TypeResolver {
 	INSTACE;
-
-	static final RiffDefinition RIFF_DEFINITION = new RiffDefinition();
 
 	@Override
 	public TypeBuilderFactory get(String identifier) {

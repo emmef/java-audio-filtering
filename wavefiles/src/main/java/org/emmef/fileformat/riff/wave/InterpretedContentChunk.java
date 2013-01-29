@@ -1,8 +1,8 @@
 package org.emmef.fileformat.riff.wave;
 
-import org.emmef.fileformat.interchange.ContentChunk;
-import org.emmef.samples.serialization.Deserialize;
-import org.emmef.samples.serialization.Serialize;
+import org.emmef.fileformat.iff.ContentChunk;
+import org.emmef.serialization.Deserialize;
+import org.emmef.serialization.Serialize;
 import org.emmef.utils.Preconditions;
 
 public class InterpretedContentChunk {
