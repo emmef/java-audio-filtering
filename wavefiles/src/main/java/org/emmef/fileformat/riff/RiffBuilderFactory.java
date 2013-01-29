@@ -12,6 +12,8 @@ enum RiffBuilderFactory implements TypeBuilderFactory {
 	@Override
 	public ContentBuilderFactory getContentParser(String contentType) throws ContentTypeNotRecognisedException {
 		// TODO provide available return values with a provider structure.
+		// Make providers that have a type (RIFF, AIFF, etc) and a Content-type
+		// (WAVE, AVI) that can be used to create proper mappings to factories.
 		if (!"WAVE".equals(contentType)) {
 			throw new ContentTypeNotRecognisedException(contentType);
 		}
