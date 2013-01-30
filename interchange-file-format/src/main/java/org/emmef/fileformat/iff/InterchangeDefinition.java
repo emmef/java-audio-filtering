@@ -2,7 +2,7 @@ package org.emmef.fileformat.iff;
 
 import org.emmef.samples.serialization.Endian;
 
-public abstract class InterchangeDefinition {
+public abstract class InterchangeDefinition implements DefinitionInfo {
 	/**
 	 * This is the offset of content inside a chunk, which is always the
 	 * identifier (4 ASCII-bytes) plus the chunk-length (4 byte word).
@@ -20,6 +20,7 @@ public abstract class InterchangeDefinition {
 	 * 
 	 * @return a non-{@code null} {@link String}
 	 */
+	@Override
 	public final String getIdentifier() {
 		return identifier;
 	}
@@ -33,6 +34,7 @@ public abstract class InterchangeDefinition {
 
 	 * @return a positive number
 	 */
+	@Override
 	public long childRelativeOffset() {
 		return 0L;
 	}
@@ -45,6 +47,7 @@ public abstract class InterchangeDefinition {
 	 * 
 	 * @return a non-{@code null} {@link Endian}.
 	 */
+	@Override
 	public Endian getEndian() {
 		return null;
 	}

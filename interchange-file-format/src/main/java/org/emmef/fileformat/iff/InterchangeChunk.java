@@ -9,7 +9,7 @@ import org.emmef.samples.serialization.Endian;
 import org.emmef.utils.Preconditions;
 
 
-public abstract class InterchangeChunk {
+public abstract class InterchangeChunk implements ChunkInfo {
 	public static final long MAX_CONTENT_LENGTH = 0xffffffffL;
 	public static final long MAX_READ_LENGTH = 0xffffL;
 	
@@ -48,14 +48,21 @@ public abstract class InterchangeChunk {
 		this.relationInstance = relationInstance;
 	}
 	
+	@Override
 	public final String getIdentifier() {
 		return definition.getIdentifier();
 	}
 	
+	@Override
 	public final long getContentLength() {
 		return contentLength;
 	}
 	
+	@Override
+	public final long childRelativeOffset() {
+		return getDefinition().childRelativeOffset();
+	}
+
 	public final ChunkRelation getRelation() {
 		return relation;
 	}
@@ -76,6 +83,7 @@ public abstract class InterchangeChunk {
 		return 0;
 	}
 	
+	@Override
 	public Endian getEndian() {
 		Endian endian = definition.getEndian();
 		if (endian != null) {
@@ -103,7 +111,8 @@ public abstract class InterchangeChunk {
 		return relationInstance;
 	}
 	
-	public final InterchangeDefinition getDefinition() {
+	@Override
+	public InterchangeDefinition getDefinition() {
 		return definition;
 	}
 	

@@ -42,7 +42,7 @@ public class Parser {
 			if (contentFactory != null) {
 				content = linkContentChunk(stream, type, content, contentFactory);
 				result.add(content);
-				if (!content.getContentDefinition().preReadContent()) {
+				if (!content.getDefinition().preReadContent()) {
 					return result; // cannot read past here...
 				}
 			}

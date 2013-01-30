@@ -1,6 +1,6 @@
 package org.emmef.fileformat.iff;
 
-public final class TypeChunk extends InterchangeChunk {
+public final class TypeChunk extends InterchangeChunk implements TypeChunkInfo {
 	private final String contentType;
 
 	TypeChunk(InterchangeDefinition definition, long contentLength, ChunkRelation relation, InterchangeChunk relationInstance, String contentType) {
@@ -16,10 +16,12 @@ public final class TypeChunk extends InterchangeChunk {
 		throw new IllegalStateException(this + " has no sibling");
 	}
 	
-	public final TypeDefinition getTypeDefinition() {
-		return (TypeDefinition)getDefinition();
+	@Override
+	public final TypeDefinition getDefinition() {
+		return (TypeDefinition)super.getDefinition();
 	}
 
+	@Override
 	public String getContentType() {
 		return contentType;
 	}
@@ -27,9 +29,9 @@ public final class TypeChunk extends InterchangeChunk {
 	@Override
 	public String toString() {
 		StringBuilder text = new StringBuilder();
-		text.append(getTypeDefinition().getIdentifier()).append("[");
-		if (getTypeDefinition().getEndian() != null) {
-			text.append("endianness=").append(getTypeDefinition().getEndian()).append("; ");
+		text.append(getDefinition().getIdentifier()).append("[");
+		if (getDefinition().getEndian() != null) {
+			text.append("endianness=").append(getDefinition().getEndian()).append("; ");
 		}
 		text.append("content-type=").append(getContentType());
 		text.append("; content-length=").append(getContentLength());

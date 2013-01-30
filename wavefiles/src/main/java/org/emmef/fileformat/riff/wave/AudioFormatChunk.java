@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.emmef.audio.format.AudioFormat;
 import org.emmef.fileformat.iff.ContentChunk;
+import org.emmef.fileformat.iff.DelegateContentChunk;
 import org.emmef.fileformat.iff.InterchangeChunk;
 import org.emmef.fileformat.iff.InterchangeChunk.ContentBuilder;
 import org.emmef.fileformat.iff.TypeChunk;
@@ -13,7 +14,7 @@ import org.emmef.fileformat.riff.WaveBuilderFactory;
 import org.emmef.samples.serialization.Serialize;
 import org.emmef.utils.Preconditions;
 
-public class AudioFormatChunk extends InterpretedContentChunk {
+public class AudioFormatChunk extends DelegateContentChunk {
 	public static final List<Byte> TYPE_GUID_PADDING = Collections.unmodifiableList(Arrays.asList(
 			(byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x10, (byte)0x00, (byte)0x80,
 			(byte)0x00, (byte)0x00, (byte)0xAA, (byte)0x00, (byte)0x38, (byte)0x9B, (byte)0x71));
@@ -46,7 +47,7 @@ public class AudioFormatChunk extends InterpretedContentChunk {
 	 * Create a new format chunk, based on the provided
 	 * audio format.
 	 * 
-	 * @param source
+	 * @param relation
 	 * @param format
 	 */
 	public static AudioFormatChunk fromFormat(InterchangeChunk relation, AudioFormat format) {

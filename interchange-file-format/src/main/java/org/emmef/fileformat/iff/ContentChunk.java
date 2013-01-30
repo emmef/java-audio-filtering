@@ -1,6 +1,10 @@
 package org.emmef.fileformat.iff;
 
-public final class ContentChunk extends InterchangeChunk {
+import org.emmef.samples.serialization.Deserialize;
+import org.emmef.samples.serialization.Serialize;
+import org.emmef.utils.Preconditions;
+
+public final class ContentChunk extends InterchangeChunk implements ContentChunkInfo {
 
 	private final byte[] content;
 
@@ -25,26 +29,63 @@ public final class ContentChunk extends InterchangeChunk {
 		throw new IllegalStateException(this + "has no sibling");
 	}
 	
-	public byte[] getContent() {
-		return content;
+	@Override
+	public final ContentDefinition getDefinition() {
+		return (ContentDefinition)super.getDefinition();
 	}
 	
-	public final ContentDefinition getContentDefinition() {
-		return (ContentDefinition)getDefinition();
+	@Override
+	public final int getByteAt(int offset) {
+		return 0xff & Deserialize.read8(getBuffer(offset, 1), offset);
+	}
+	
+	@Override
+	public final int getWordAt(int offset) {
+		return 0xffff & Deserialize.read16LittleEndian(getBuffer(offset, 2), offset);
+	}
+	
+	@Override
+	public final long getDWordAt(int offset) {
+		return 0xffffffffL & Deserialize.read32LittleEndian(getBuffer(offset, 4), offset);
+	}
+	
+	@Override
+	public final long getQWordAt(int offset) {
+		return Deserialize.read64LittleEndian(getBuffer(offset, 8), offset);
+	}
+	
+	@Override
+	public final void setByteAt(int value, int offset) {
+		Serialize.write08(value, getBuffer(offset, 1), offset);
+	}
+	
+	@Override
+	public final void setWordAt(int value, int offset) {
+		Serialize.write16LittleEndian(value, getBuffer(offset, 2), offset);
+	}
+	
+	@Override
+	public final void setDWordAt(long value, int offset) {
+		Serialize.write32LittleEndian((int)value, getBuffer(offset, 4), offset);
+	}
+	
+	@Override
+	public final void setWWordAt(long value, int offset) {
+		Serialize.write64LittleEndian(value, getBuffer(offset, 8), offset);
 	}
 	
 	@Override
 	public String toString() {
 		StringBuilder text = new StringBuilder();
-		text.append(getContentDefinition().getIdentifier()).append("[");
-		if (getContentDefinition().getEndian() != null) {
-			text.append("endianness=").append(getContentDefinition().getEndian()).append("; ");
+		text.append(getDefinition().getIdentifier()).append("[");
+		if (getDefinition().getEndian() != null) {
+			text.append("endianness=").append(getDefinition().getEndian()).append("; ");
 		}
 		text.append("content-length=").append(getContentLength());
 		if (getOffset() > 0) {
 			text.append("; offset=").append(getOffset());
 		}
-		if (getContentDefinition().preReadContent()) {
+		if (getDefinition().preReadContent()) {
 			text.append("; pre-read");
 		}
 		text.append("]");
@@ -53,5 +94,10 @@ public final class ContentChunk extends InterchangeChunk {
 		}
 		
 		return text.toString();
+	}
+
+	private byte[] getBuffer(int offset, int bytes) {
+		Preconditions.checkOffsetAndCount(content.length, offset, bytes);
+		return content;
 	}
 }
