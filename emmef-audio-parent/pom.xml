@@ -8,4 +8,11 @@
   <groupId>org.emmef.audio</groupId>
   <artifactId>emmef-audio-parent</artifactId>
   <packaging>pom</packaging>
+  <dependencies>
+		<dependency>
+			<groupId>org.emmef</groupId>
+			<artifactId>serialization</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+  </dependencies>
 </project>
