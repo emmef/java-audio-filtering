@@ -17,13 +17,14 @@ import org.emmef.fileformat.iff.InterchangeFormatException;
 import org.emmef.fileformat.iff.parse.Parser;
 import org.emmef.fileformat.riff.RiffTypeFactory;
 import org.emmef.fileformat.riff.WaveBuilderFactory;
+import org.emmef.logging.FormatLogger;
 import org.emmef.samples.codec.FrameReader;
 import org.emmef.samples.codec.SampleCodec;
 import org.emmef.samples.codec.SampleCodecs;
 import org.emmef.utils.Preconditions;
 
 class WaveFileReader implements SoundSource {
-	
+	private static final FormatLogger log = FormatLogger.getLogger(WaveFileReader.class);
 	private final AudioFormat audioFormat;
 	private final InputStream stream;
 	private final FrameReader frameReader;
@@ -44,17 +45,12 @@ class WaveFileReader implements SoundSource {
 			ContentChunk dataChunk = null;
 			
 			readChunks = Parser.readChunks(RiffTypeFactory.INSTACE, stream);
+			
 			for (InterchangeChunk chunk : readChunks) {
-				System.out.println("CHUNK " + chunk);
+				log.debug("CHUNK %s", chunk);
 				String chunkId = chunk.getDefinition().getIdentifier();
-				String formatId = WaveBuilderFactory.FMT_DEFINITION.getIdentifier();
-				if (formatId.equals(chunkId)) {
+				if (WaveBuilderFactory.FMT_DEFINITION.getIdentifier().equals(chunkId)) {
 					formatChunk = new AudioFormatChunk((ContentChunk)chunk);
-				}
-				else {
-					System.out.println(chunkId.length() + " <-> " + formatId.length());
-					System.out.println("" + (int)chunkId.charAt(3) + " <-> " + (int)formatId.charAt(3));
-					
 				}
 				if (chunkId.equals(WaveBuilderFactory.FACT_DEFINITION.getIdentifier())) {
 					factChunk = new AudioFactChunk((ContentChunk)chunk);
