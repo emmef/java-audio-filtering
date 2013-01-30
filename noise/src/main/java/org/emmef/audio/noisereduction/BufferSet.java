@@ -4,13 +4,14 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.emmef.logging.Logger;
+import org.emmef.logging.FormatLogger;
+import org.emmef.logging.FormatLoggerFactory;
 
 public class BufferSet {
-	private static final Logger logger = Logger.getDefault();
+	private static final FormatLogger logger = FormatLoggerFactory.getLogger(BufferSet.class);
 
 	public interface Handle {
-		Buffer get() throws InterruptedException; 
+		Buffer get() throws InterruptedException;
 		void put(Buffer buf);
 		void close();
 		void panic();
@@ -51,7 +52,7 @@ public class BufferSet {
 				}
 				if (first) {
 					this.sampleCount = sampleCount;
-					this.first = false;
+					first = false;
 				}
 			}
 			finally {
@@ -70,7 +71,7 @@ public class BufferSet {
 			}
 		}
 		catch (OutOfMemoryError e) {
-			// We exactly know what allocate failed. 
+			// We exactly know what allocate failed.
 		}
 		if (result.size() > minimumBuffers) {
 			logger.trace("Allocated %d buffers (min=%d)", result.size(), minimumBuffers);
@@ -80,7 +81,7 @@ public class BufferSet {
 			return result;
 		}
 		else {
-			logger.config("Couldn't allocate preferred number of buffers; processing performance might not be optimal");
+			logger.info("Couldn't allocate preferred number of buffers; processing performance might not be optimal");
 		}
 		int deficient = minimumBuffers - result.size();
 		if (deficient == 0) {
@@ -111,10 +112,11 @@ public class BufferSet {
 
 		public MyHandle(List<BufferAndState> newBuffers) {
 			for (BufferAndState b : newBuffers) {
-				this.buffers.add(b);
+				buffers.add(b);
 			}
 		}
 		
+		@Override
 		public void panic() {
 			synchronized (mutex) {
 				panic = true;
@@ -122,6 +124,7 @@ public class BufferSet {
 			}
 		}
 		
+		@Override
 		public Buffer get() throws InterruptedException {
 			Buffer buff;
 			synchronized (mutex) {
@@ -140,6 +143,7 @@ public class BufferSet {
 			return buff;
 		}
 		
+		@Override
 		public void put(Buffer buf) {
 			synchronized (mutex) {
 				try {
@@ -157,12 +161,13 @@ public class BufferSet {
 			}
 		}
 		
+		@Override
 		public void close() {
 			synchronized (mutex) {
 				try {
 					while (!buffers.isEmpty()) {
 						final BufferAndState removed = buffers.remove();
-						if (!removed.isPrivate || (shared.size() < pendingBuffersRequested)) {
+						if (!removed.isPrivate || shared.size() < pendingBuffersRequested) {
 							shared.add(removed.buffer);
 						}
 					}
@@ -190,7 +195,7 @@ public class BufferSet {
 	
 	private class BufferAndState {
 		final Buffer buffer;
-		final boolean isPrivate; 
+		final boolean isPrivate;
 		boolean occupied = false;
 		
 		public BufferAndState(Buffer buffer, boolean isPrivate) {

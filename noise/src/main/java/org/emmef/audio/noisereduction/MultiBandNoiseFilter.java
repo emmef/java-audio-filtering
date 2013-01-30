@@ -8,11 +8,12 @@ import org.emmef.audio.frame.FrameType;
 import org.emmef.audio.noisedetection.NoiseLevelDetectionFilter;
 import org.emmef.audio.noisedetection.NoiseLevelDiscardFilter;
 import org.emmef.audio.noisedetection.NrMeasurementSettings;
-import org.emmef.logging.Logger;
+import org.emmef.logging.FormatLogger;
+import org.emmef.logging.FormatLoggerFactory;
 
 
 public class MultiBandNoiseFilter {
-	private static final Logger logger = Logger.getDefault();
+	private static final FormatLogger logger = FormatLoggerFactory.getLogger(MultiBandNoiseFilter.class);
 	
 	private final BandSplitFilterSet set;
 	private final FrameType frameType;
@@ -33,7 +34,7 @@ public class MultiBandNoiseFilter {
 		if (samples.length == 0) {
 			throw new IllegalArgumentException("Need at least one frame of samples");
 		}
-		if ((samples.length % frameType.channels) != 0) {
+		if (samples.length % frameType.channels != 0) {
 			throw new IllegalArgumentException("Number of samples must be multiple of the number of channels");
 		}
 		this.samples = samples;
@@ -48,8 +49,8 @@ public class MultiBandNoiseFilter {
 		}
 		
 		filterFactories.add(new NoiseReductionFilter.Factory(ratedTimings, nrDynamicsFactory, nrMeasurements));
-		this.set = new BandSplitFilterSet(buffers, frameType.sampleRate, samples.length / frameType.channels, 25, filterFactories, crossoverInfo);
-	}	
+		set = new BandSplitFilterSet(buffers, frameType.sampleRate, samples.length / frameType.channels, 25, filterFactories, crossoverInfo);
+	}
 
 	public void filter() throws InterruptedException {
 		final int channels = frameType.channels;

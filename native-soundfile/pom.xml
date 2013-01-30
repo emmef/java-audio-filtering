@@ -28,7 +28,7 @@
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>org.emmef.config</groupId>
+			<groupId>org.emmef</groupId>
 			<artifactId>native-loader</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>

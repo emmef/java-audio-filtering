@@ -23,11 +23,6 @@
 	</build>
 	<dependencies>
 		<dependency>
-			<groupId>org.emmef.config</groupId>
-			<artifactId>simplelogger</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-		</dependency>
-		<dependency>
 			<groupId>org.emmef.audio</groupId>
 			<artifactId>audiobuckets</artifactId>
 			<version>0.0.1-SNAPSHOT</version>

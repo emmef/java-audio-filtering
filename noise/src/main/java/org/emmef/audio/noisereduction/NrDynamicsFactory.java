@@ -1,24 +1,27 @@
 package org.emmef.audio.noisereduction;
 
+import org.emmef.audio.noisereduction.NrDynamics.AbstractSubtractiveNoiseReduction;
 import org.emmef.audio.noisereduction.NrDynamics.CubicNoiseReduction;
 import org.emmef.audio.noisereduction.NrDynamics.ExpansionNoiseReduction;
 import org.emmef.audio.noisereduction.NrDynamics.SquareNoiseReduction;
-import org.emmef.logging.Logger;
+import org.emmef.logging.FormatLogger;
+import org.emmef.logging.FormatLoggerFactory;
 
 public interface NrDynamicsFactory {
 	NrDynamics create(double noiseLevel);
 	
 	static class Expansion implements NrDynamicsFactory {
-		private static final Logger log = Logger.getDefault();
+		private static final FormatLogger log = FormatLoggerFactory.getLogger(NrDynamicsFactory.class);
 		public final double relativeThreshold;
 		public final double expansionRatio;
 
 		public Expansion(double thresholdDb, double expansionRatio) {
 			NrDynamics.AbstractExpansionNoiseReduction.staticParameterCheckDb(thresholdDb, expansionRatio);
-			this.relativeThreshold = NrDynamics.decibelToValue(thresholdDb);
+			relativeThreshold = NrDynamics.decibelToValue(thresholdDb);
 			this.expansionRatio = expansionRatio;
 		}
 		
+		@Override
 		public NrDynamics create(double noiseLevel) {
 			if (noiseLevel <= 0) {
 				throw new IllegalArgumentException("Noise level must be positive");
@@ -45,16 +48,17 @@ public interface NrDynamicsFactory {
 	}
 	
 	static class Subtraction implements NrDynamicsFactory {
-		private static final Logger log = Logger.getDefault();
+		private static final FormatLogger log = FormatLoggerFactory.getLogger(Subtraction.class);
 		public final double threshold;
 		public final double subtractionRatio;
 
 		public Subtraction(double factorDb, double subtractionRatio) {
 			this.subtractionRatio = subtractionRatio;
-			NrDynamics.SubtractiveNoiseReduction.checkStaticParametersDb(factorDb, subtractionRatio);
-			this.threshold = NrDynamics.decibelToValue(factorDb);
+			AbstractSubtractiveNoiseReduction.checkStaticParametersDb(factorDb, subtractionRatio);
+			threshold = NrDynamics.decibelToValue(factorDb);
 		}
 		
+		@Override
 		public NrDynamics create(double noiseLevel) {
 			if (Math.abs(subtractionRatio) < 0.05) {
 				final NrDynamics.SubtractiveNoiseReduction subtractiveNoiseReduction = new NrDynamics.SubtractiveNoiseReduction(threshold, noiseLevel);

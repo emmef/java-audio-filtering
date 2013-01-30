@@ -4,10 +4,11 @@ import org.emmef.audio.buckets.BucketScanner;
 import org.emmef.audio.noisedetection.NoiseLevelDiscardFilter;
 import org.emmef.audio.noisedetection.NrMeasurementSettings;
 import org.emmef.audio.noisedetection.NrMeasurementValues;
-import org.emmef.logging.Logger;
+import org.emmef.logging.FormatLogger;
+import org.emmef.logging.FormatLoggerFactory;
 
 public class NoiseLevelMarkerFilter implements ChainableFilter {
-	private static final Logger log = Logger.getDefault();
+	private static final FormatLogger log = FormatLoggerFactory.getLogger(NoiseLevelMarkerFilter.class);
 	public static final byte MARK = 2;
 	public static final byte UNMARK = (byte)(0xFF ^ MARK);
 	
@@ -20,18 +21,20 @@ public class NoiseLevelMarkerFilter implements ChainableFilter {
 	private boolean marking = false;
 
 	NoiseLevelMarkerFilter(BucketScanner bucketScanner, byte[] markers, double noiseLevel) {
-		this.scanner = bucketScanner;
+		scanner = bucketScanner;
 		this.markers = markers;
 		this.noiseLevel = noiseLevel;
-		this.threshold = noiseLevel * noiseLevel * 1.01;
+		threshold = noiseLevel * noiseLevel * 1.01;
 		reset();
 	}
 
+	@Override
 	public Double getMetaData() {
 		log.debug("Marked %d (%d buckets) for irregular noise measuremens (%1.1f dB) (bucket %d samples)", marks, marks / scanner.getBucketSize(), 20.0*Math.log10(noiseLevel), scanner.getBucketSize());
 		return noiseLevel;
 	}
 
+	@Override
 	public double filter(double input) {
 		if ((markers[position] & NoiseLevelDiscardFilter.MARK) != 0) {
 			position++;
@@ -51,7 +54,7 @@ public class NoiseLevelMarkerFilter implements ChainableFilter {
 			}
 			else if (average < threshold) {
 				int i = position;
-				int j = 0; 
+				int j = 0;
 				final int bucketSize = scanner.getBucketSize();
 				while (j < bucketSize) {
 					while ((markers[i] & NoiseLevelDiscardFilter.MARK) != 0) {
@@ -71,8 +74,9 @@ public class NoiseLevelMarkerFilter implements ChainableFilter {
 		return input;
 	}
 
+	@Override
 	public void reset() {
-		position = 0; 
+		position = 0;
 		scanner.reset();
 		for (int i = 0; i < markers.length; i++) {
 			markers[i] &= UNMARK;
@@ -93,6 +97,7 @@ public class NoiseLevelMarkerFilter implements ChainableFilter {
 			}};
 		}
 
+		@Override
 		public ChainableFilter createFilter(Object filterMetaData, double minFreq, double maxFreq, byte[] markers) {
 			if (filterMetaData == null) {
 				throw new NullPointerException("filterMetaData");
@@ -102,16 +107,19 @@ public class NoiseLevelMarkerFilter implements ChainableFilter {
 			return new NoiseLevelMarkerFilter(scanner.get(), markers, noiseLevel);
 		}
 
+		@Override
 		public int getEndOffset() {
 			// TODO Auto-generated method stub
 			return 0;
 		}
 
+		@Override
 		public int getLatency() {
 			// TODO Auto-generated method stub
 			return 0;
 		}
 
+		@Override
 		public int getStartOffset() {
 			// TODO Auto-generated method stub
 			return 0;

@@ -6,7 +6,6 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Level;
 
 import org.emmef.audio.frame.FrameType;
 import org.emmef.audio.nodes.SoundSink;
@@ -19,14 +18,11 @@ import org.emmef.config.options.SwitchBuilder;
 import org.emmef.config.options.Value;
 import org.emmef.config.program.Program;
 import org.emmef.config.program.ProgramUtils;
-import org.emmef.logging.Logger;
+import org.emmef.logging.FormatLogger;
+import org.emmef.logging.FormatLoggerFactory;
 
 public class NoiseRemover implements Program {
-	private static final Logger logger = Logger.getDefault();
-	
-	static {
-		Logger.getDefault().setLevel(Level.FINEST);
-	}
+	private static final FormatLogger logger = FormatLoggerFactory.getLogger(NoiseRemover.class);
 	
 	Builder cmd = Options.create("NoiseRemover");
 	private final SwitchBuilder noiseMeasurement =
@@ -181,10 +177,9 @@ public class NoiseRemover implements Program {
 //				"/tmp",
 //		};
 		cmd.parse(fakeArguments);
-		logger.setLevel(Level.FINE);
 		
 		final SoundSource soundSource = SourceAndSinkProvider.createSource(URI.create("file:" + inputFile.getValue().getAbsolutePath()));
-		logger.config("Reading \"" + soundSource + "\"");
+		logger.info("Reading \"" + soundSource + "\"");
 		final String absolutePath = new File(outputDirectory.getValue(), inputFile.getValue().getName()).getAbsolutePath();
 	
 		try {
@@ -206,7 +201,7 @@ public class NoiseRemover implements Program {
 		float[] samples;
 		final FrameType frameType = soundSource.getMetrics().getAudioFormat();
 		final long frameCount = soundSource.getMetrics().getFrames();
-		logger.fine("Frames=%d; channels=%d", frameCount, frameType.channels);
+		logger.trace("Frames=%d; channels=%d", frameCount, frameType.channels);
 		
 		if (frameCount > Integer.MAX_VALUE/ frameType.channels) {
 			throw new IllegalStateException("Too many frames (" + frameCount + ") in file for number of channels (" + frameType.channels + ")");
@@ -214,16 +209,16 @@ public class NoiseRemover implements Program {
 		
 		samples = new float[frameType.channels * (int)frameCount];
 		
-		logger.config("Read from " + soundSink);
+		logger.info("Read from " + soundSink);
 		long reads = soundSource.readFrames(samples);
 		if (reads != frameCount) {
 			throw new IllegalStateException("Couldn't read complete file!");
 		}
 		
-		logger.config("Filtering...");
+		logger.info("Filtering...");
 		createNoiseFilter(frameType, samples).filter();
 		
-		logger.config("Write to " + soundSink);
+		logger.info("Write to " + soundSink);
 		soundSink.writeFrames(samples);
 	}
 
@@ -233,7 +228,7 @@ public class NoiseRemover implements Program {
 		
 		final List<Double> crossoverValues = getCrossovers(crossovers.values(), crossoverPreset.getValue());
 		final CrossoverInfo crossoverInfo = new CrossoverInfo(direction, filterOrder.getValue(), crossoverValues);
-		logger.config(crossoverInfo);
+		logger.info(crossoverInfo);
 		NrDynamicsFactory nrDynamicsFactory;
 		if (expansionReduction.present()) {
 			nrDynamicsFactory = new NrDynamicsFactory.Expansion(expansionThreshold.getValue(), expansionFactor.getValue());
@@ -241,15 +236,15 @@ public class NoiseRemover implements Program {
 		else {
 			nrDynamicsFactory = new NrDynamicsFactory.Subtraction(subtractionFactor.getValue(), subtractionRatio.getValue());
 		}
-		logger.config(nrDynamicsFactory);
+		logger.info(nrDynamicsFactory);
 		NrMeasurementSettings nrMeasurement = new NrMeasurementSettings(
 				minSnRationDb.getValue(), maxSnRationDb.getValue(),
 				maxRmsWindow.getValue(), noiseRmsWindow.getValue(), skipMarkRmsWindow.getValue(),
 				skipStartSeconds.getValue(), skipEndSeconds.getValue(), irregularNoiseMeasurement.getValue());
 		
-		logger.config(nrMeasurement);
+		logger.info(nrMeasurement);
 		final DefaultTimings timings = new DefaultTimings(crossoverInfo, timeMeasurement.values(), timeAttack.values(), timeRelease.values());
-		logger.config(timings);
+		logger.info(timings);
 		
 		splitter = new MultiBandNoiseFilter(samples, frameType, nrMeasurement, nrDynamicsFactory, crossoverInfo, timings);
 		return splitter;

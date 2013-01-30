@@ -3,10 +3,11 @@ package org.emmef.audio.noisereduction;
 import org.emmef.audio.buckets.BucketScanner;
 import org.emmef.audio.noisedetection.NrMeasurementSettings;
 import org.emmef.audio.noisedetection.NrMeasurementValues;
-import org.emmef.logging.Logger;
+import org.emmef.logging.FormatLogger;
+import org.emmef.logging.FormatLoggerFactory;
 
 public class IrregularNoiseDetectionFilter implements ChainableFilter {
-	private static final Logger logger = Logger.getDefault();
+	private static final FormatLogger logger = FormatLoggerFactory.getLogger(IrregularNoiseDetectionFilter.class);
 	private final BucketScanner scanner;
 	private final double noiseLevel;
 	private final byte[] markers;
@@ -19,10 +20,12 @@ public class IrregularNoiseDetectionFilter implements ChainableFilter {
 		reset();
 	}
 
+	@Override
 	public Object getMetaData() {
 		return getNoiseLevel();
 	}
 
+	@Override
 	public double filter(double input) {
 		if ((markers[position] & NoiseLevelMarkerFilter.MARK) != 0) {
 			scanner.addUnscaledSample(input * input);
@@ -31,6 +34,7 @@ public class IrregularNoiseDetectionFilter implements ChainableFilter {
 		return input;
 	}
 
+	@Override
 	public void reset() {
 		position = 0;
 		scanner.reset();
@@ -48,7 +52,7 @@ public class IrregularNoiseDetectionFilter implements ChainableFilter {
 			correction = 1.0;
 		}
 		if (correction > 1.0) {
-			logger.config("Irregular noise level correction: %+1.1f dB (bucket %d samples)", 20*Math.log10(correction), scanner.getBucketSize());
+			logger.info("Irregular noise level correction: %+1.1f dB (bucket %d samples)", 20*Math.log10(correction), scanner.getBucketSize());
 		}
 		
 		return newNoiseLevel;
@@ -65,6 +69,7 @@ public class IrregularNoiseDetectionFilter implements ChainableFilter {
 			this.nrMeasurements = nrMeasurements.withSampleRate((int)ratedTimings.sampleRate);
 		}
 
+		@Override
 		public ChainableFilter createFilter(Object filterMetaData, double minFreq, double maxFreq, byte[] markers) {
 			if (filterMetaData == null) {
 				throw new NullPointerException("filterMetaData");
@@ -75,16 +80,19 @@ public class IrregularNoiseDetectionFilter implements ChainableFilter {
 			return new IrregularNoiseDetectionFilter(newScanner, ((Double)filterMetaData).doubleValue(), markers);
 		}
 
+		@Override
 		public int getEndOffset() {
 			// TODO Auto-generated method stub
 			return 0;
 		}
 
+		@Override
 		public int getLatency() {
 			// TODO Auto-generated method stub
 			return 0;
 		}
 
+		@Override
 		public int getStartOffset() {
 			// TODO Auto-generated method stub
 			return 0;

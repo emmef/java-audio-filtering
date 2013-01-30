@@ -11,7 +11,8 @@ import org.emmef.audio.filter.iir.butterworth.Butterworth;
 import org.emmef.audio.filter.iir.butterworth.PassType;
 import org.emmef.audio.filter.tools.Integrator;
 import org.emmef.audio.noisereduction.BufferSet.Handle;
-import org.emmef.logging.Logger;
+import org.emmef.logging.FormatLogger;
+import org.emmef.logging.FormatLoggerFactory;
 
 public class BandSplitFilterSet {
 	public enum Direction {
@@ -32,7 +33,7 @@ public class BandSplitFilterSet {
 		}
 	}
 	
-	private static final Logger logger = Logger.getDefault();
+	private static final FormatLogger logger = FormatLoggerFactory.getLogger(BandSplitFilterSet.class);
 	private static final int LOW_BANDWIDTH_LIMIT = 20;
 	
 	public static final int LAYER_DIFFERENCE = 0;
@@ -67,21 +68,21 @@ public class BandSplitFilterSet {
 		this.frameCount = frameCount;
 		this.factories = factories;
 		
-		this.filters = new ChainableFilter[factories.size()][];
+		filters = new ChainableFilter[factories.size()][];
 		int filterLatency = 0;
 		for (int filter = 0; filter < factories.size(); filter++) {
-			this.filters[filter] = new ChainableFilter[crossoverInfo.crossovers.size() + 1];
+			filters[filter] = new ChainableFilter[crossoverInfo.crossovers.size() + 1];
 			filterLatency += factories.get(filter).getLatency();
 		}
 		
 		final double lowestCrossover = crossoverInfo.crossovers.get(0);
 		final double characteristicSamples = Integrator.samples(samplerate, 0.5 / (lowestCrossover * Math.PI));
-		final int bitLevelPeriods = (int)(0.5 + Math.log(2.0) * crossoverInfo.filterOrder * bits * (crossoverInfo.crossovers.size()) * characteristicSamples);
+		final int bitLevelPeriods = (int)(0.5 + Math.log(2.0) * crossoverInfo.filterOrder * bits * crossoverInfo.crossovers.size() * characteristicSamples);
 		final int correctedFrameCount = frameCount + 2 * bitLevelPeriods;
-		this.offset = bitLevelPeriods;
-		this.totalSampleCount = correctedFrameCount + filterLatency;
-		this.inPosition = offset; 
-		this.outPosition = offset + filterLatency; 
+		offset = bitLevelPeriods;
+		totalSampleCount = correctedFrameCount + filterLatency;
+		inPosition = offset;
+		outPosition = offset + filterLatency;
 	}
 	
 	public void filter(final float[] data, final int offset, final int step, final CountDownLatch latch) throws InterruptedException {
@@ -109,12 +110,13 @@ public class BandSplitFilterSet {
 		private CrossoverThread(int offset, float[] data, int step, CountDownLatch latch) {
 			super("Channel " + offset + " crossovers");
 			setDaemon(true);
-			this.offs = offset;
+			offs = offset;
 			this.data = data;
 			this.step = step;
 			this.latch = latch;
 		}
 
+		@Override
 		public void run() {
 			try {
 				filter();
@@ -156,13 +158,13 @@ public class BandSplitFilterSet {
 
 		private void readData(Buffer input) {
 			final double[] inputSamples = input.getSamples();
-			int i = 0; 
+			int i = 0;
 			for (; i < inPosition; i++) {
 				inputSamples[i] = 0.0;
 			}
 			final int dataInEnd = inPosition + data.length / step;
 			synchronized (data) {
-				for (int dataPosition = offs; i < dataInEnd; i++, dataPosition += step) { 
+				for (int dataPosition = offs; i < dataInEnd; i++, dataPosition += step) {
 					inputSamples[i] = data[dataPosition];
 				}
 			}
@@ -198,18 +200,18 @@ public class BandSplitFilterSet {
 					Buffer destination = handle.get();
 					final long waited = System.currentTimeMillis() - start;
 					if (waited > 100) {
-						logger.config("Waited " + waited + " msec for next buffer to split.");
+						logger.info("Waited " + waited + " msec for next buffer to split.");
 					}
 					filterBands(source.getSamples(), destination.getSamples(), higherFrequency, PassType.LOW_PASS);
 					/*
 					 * LAYER_FILTER now contains the filtered frequency band, we must do
-					 * the filtering there! 
+					 * the filtering there!
 					 */
 					submitFilters(destination, lowerFrequency, higherFrequency);
 					lowerFrequency = higherFrequency;
 				}
 				/*
-				 * There is one band left: the last one, which contains the highest 
+				 * There is one band left: the last one, which contains the highest
 				 * frequency band. We must filter that too!
 				 */
 				submitFilters(source, lowerFrequency, 0.5 * samplerate);
@@ -223,13 +225,13 @@ public class BandSplitFilterSet {
 					filterBands(source.getSamples(), destination.getSamples(), lowerFrequency, PassType.HIGH_PASS);
 					/*
 					 * LAYER_FILTER now contains the filtered frequency band, we must do
-					 * the filtering there! 
+					 * the filtering there!
 					 */
 					submitFilters(destination, lowerFrequency, higherFrequency);
 					higherFrequency = lowerFrequency;
 				}
 				/*
-				 * There is one band left: the last one, which contains the one lowest 
+				 * There is one band left: the last one, which contains the one lowest
 				 * frequency band. We must filter that too!
 				 */
 				submitFilters(source, LOW_BANDWIDTH_LIMIT, higherFrequency);
@@ -239,8 +241,8 @@ public class BandSplitFilterSet {
 		/**
 		 * Applies a low-pass Linkwitz-Riley filter.
 		 * 
-		 * The filter uses the data from the source layer and stores 
-		 * the results in the destination layer. All values in the 
+		 * The filter uses the data from the source layer and stores
+		 * the results in the destination layer. All values in the
 		 * result layer are then subtracted from the source layer.
 		 */
 		private void filterBands(double[] sourceLayer, double[] destinationLayer, double frequency, PassType passBand) {
@@ -312,23 +314,23 @@ public class BandSplitFilterSet {
 		}
 		
 		/**
-		 * Applies the filters enlisted in factories to the specified data. Afterwards, 
-		 * it adds the data to the LAYER_ACCUMULATE.   
+		 * Applies the filters enlisted in factories to the specified data. Afterwards,
+		 * it adds the data to the LAYER_ACCUMULATE.
 		 */
 		private void applyFilters(Buffer data, double lowerFrequency, double higherFrequency) {
-			logger.config("Apply filters for %1.0f to %1.0f Hz", lowerFrequency, higherFrequency);
+			logger.info("Apply filters for %1.0f to %1.0f Hz", lowerFrequency, higherFrequency);
 			Object metaData = null;
-			final double[] samples = data.getSamples(); 
+			final double[] samples = data.getSamples();
 			for (int filter = 0; filter < filters.length; filter++) {
 				final FilterFactory filterFactory = factories.get(filter);
-				final int endOffset = offset + frameCount + filterFactory.getLatency() - filterFactory.getEndOffset();  
+				final int endOffset = offset + frameCount + filterFactory.getLatency() - filterFactory.getEndOffset();
 				final int startOffset = offset + filterFactory.getStartOffset();
 				ChainableFilter bandFilter = filterFactory.createFilter(metaData, lowerFrequency, higherFrequency, data.getMarkers());
 				for (int i = startOffset; i < endOffset; i++) {
 					samples[i] = bandFilter.filter(samples[i]);
 				}
 				metaData = bandFilter.getMetaData();
-			}		
+			}
 			synchronized (accumulator) {
 				for (int i = 0; i < samples.length; i++) {
 					accumulator[i] += samples[i];

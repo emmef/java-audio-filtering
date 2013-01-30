@@ -3,18 +3,19 @@ package org.emmef.audio.noisedetection;
 import org.emmef.audio.buckets.BucketScanner;
 import org.emmef.audio.noisereduction.ChainableFilter;
 import org.emmef.audio.noisereduction.FilterFactory;
-import org.emmef.logging.Logger;
+import org.emmef.logging.FormatLogger;
+import org.emmef.logging.FormatLoggerFactory;
 
 public class NoiseLevelDiscardFilter implements ChainableFilter {
 	public static final byte MARK = 1;
 	public static final byte UNMARK = (byte)(0xFF ^ MARK);
 	
-	private static final Logger logger = Logger.getDefault();
+	private static final FormatLogger logger = FormatLoggerFactory.getLogger(NoiseLevelDiscardFilter.class);
 	private final byte[] ignored;
 	private final double thresholdLo;
 	private final double thresholdUnsquared;
 	
-	private BucketScanner scanner;
+	private final BucketScanner scanner;
 	private int position = 0;
 	private boolean isWiping;
 	private int ignoredCount;
@@ -27,12 +28,13 @@ public class NoiseLevelDiscardFilter implements ChainableFilter {
 		this.scanner = scanner;
 		this.nrMeasurements = nrMeasurements;
 		this.maxRmsLevel = maxRmsLevel;
-		this.thresholdUnsquared = maxRmsLevel / nrMeasurements.maxSnRatio;
-		this.thresholdLo = thresholdUnsquared * thresholdUnsquared;
-		this.endPosition = ignored.length - nrMeasurements.skipEndSamples;
+		thresholdUnsquared = maxRmsLevel / nrMeasurements.maxSnRatio;
+		thresholdLo = thresholdUnsquared * thresholdUnsquared;
+		endPosition = ignored.length - nrMeasurements.skipEndSamples;
 		reset();
 	}
 	
+	@Override
 	public void reset() {
 		position = 0;
 		ignoredCount = 0;
@@ -48,6 +50,7 @@ public class NoiseLevelDiscardFilter implements ChainableFilter {
 		return getClass().getSimpleName();
 	}
 	
+	@Override
 	public double filter(final double source) {
 		if (position < nrMeasurements.skipStartSamples || position > endPosition) {
 			ignored[position] |= MARK;
@@ -81,6 +84,7 @@ public class NoiseLevelDiscardFilter implements ChainableFilter {
 		return source;
 	}
 	
+	@Override
 	public Double getMetaData() {
 		if (10 * ignoredCount / position > 0) {
 			logger.warn(this + " ignored " + ignoredCount + " samples");
@@ -99,6 +103,7 @@ public class NoiseLevelDiscardFilter implements ChainableFilter {
 			this.nrMeasurements = nrMeasurements.withSampleRate(samplerate);
 		}
 
+		@Override
 		@SuppressWarnings("unused")
 		public NoiseLevelDiscardFilter createFilter(Object maxRmsLevel, double minFreq, double maxFreq, byte[] markers) {
 			if (maxRmsLevel == null) {
@@ -114,14 +119,17 @@ public class NoiseLevelDiscardFilter implements ChainableFilter {
 			return new NoiseLevelDiscardFilter(markers, scanner.get(), nrMeasurements, maxRms);
 		}
 
+		@Override
 		public int getEndOffset() {
 			return 0;
 		}
 
+		@Override
 		public int getLatency() {
 			return 0;
 		}
 
+		@Override
 		public int getStartOffset() {
 			return 0;
 		}

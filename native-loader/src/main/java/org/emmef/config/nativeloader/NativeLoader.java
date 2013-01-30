@@ -12,9 +12,12 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
 
-import org.emmef.logging.Logger;
+import org.emmef.logging.FormatLogger;
+import org.emmef.logging.FormatLoggerFactory;
 
 public class NativeLoader {
+	private static final FormatLogger log = FormatLoggerFactory.getLogger(NativeLoader.class);
+	
 	private static final Object STATIC_LOCK = new Object[0];
 	private static final File FAILED_INITIALIZATION = new File(UUID.randomUUID().toString());
 	public static final String LIB_ROOT_DIR = ".native-loader.";
@@ -22,7 +25,7 @@ public class NativeLoader {
 	private static File temporaryFileDirectory;
 	private static final SortedSet<String> loadedLibraryBaseNames = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
 	
-	public static List<PlatformDependentLibraryName> DEFAULT_PLATFORMS = 
+	public static List<PlatformDependentLibraryName> DEFAULT_PLATFORMS =
 			Collections.unmodifiableList(Arrays.asList(new PlatformDependentLibraryName[] {
 					new PosixLibraryName("amd64"), new PosixLibraryName("i386"),
 					new WindowsLibraryName("i386"), new WindowsLibraryName("amd64")
@@ -112,17 +115,17 @@ public class NativeLoader {
 		if (libraryFile.exists() && libraryFile.canRead()) {
 			try {
 				System.load(libraryPath);
-				Logger.getDefault().config("Successfully loaded %s", libraryPath);
+				log.info("Successfully loaded %s", libraryPath);
 				return true;
 			}
 			catch (SecurityException e) {
-				Logger.getDefault().debug("Failed to load %s: %s", libraryPath, e);
+				log.debug("Failed to load %s: %s", libraryPath, e);
 			}
 			catch (UnsatisfiedLinkError e) {
-				Logger.getDefault().debug("Failed to load %s: %s", libraryPath, e);
+				log.debug("Failed to load %s: %s", libraryPath, e);
 			}
 		}
-		Logger.getDefault().debug("Couldn't find or read %s", libraryPath);
+		log.debug("Couldn't find or read %s", libraryPath);
 		return false;
 	}
 	
@@ -151,7 +154,7 @@ public class NativeLoader {
 			}
 		}
 		catch (IOException e) {
-			Logger.getDefault().warn("Couldn't create library load directory in temp directory");
+			log.warn("Couldn't create library load directory in temp directory");
 		}
 		
 		return createLibraryRootDirIn(new File("."));

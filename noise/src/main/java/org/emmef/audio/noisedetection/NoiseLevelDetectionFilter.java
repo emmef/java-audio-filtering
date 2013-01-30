@@ -4,10 +4,11 @@ import org.emmef.audio.buckets.BucketScanner;
 import org.emmef.audio.noisedetection.NoiseLevelDiscardFilter.DiscardInfo;
 import org.emmef.audio.noisereduction.ChainableFilter;
 import org.emmef.audio.noisereduction.FilterFactory;
-import org.emmef.logging.Logger;
+import org.emmef.logging.FormatLogger;
+import org.emmef.logging.FormatLoggerFactory;
 
 public class NoiseLevelDetectionFilter implements ChainableFilter {
-	private static final Logger logger = Logger.getDefault();
+	private static final FormatLogger logger = FormatLoggerFactory.getLogger(NoiseLevelDetectionFilter.class);
 	
 	private final BucketScanner scanner;
 	private final byte[] ignored;
@@ -18,16 +19,18 @@ public class NoiseLevelDetectionFilter implements ChainableFilter {
 	public NoiseLevelDetectionFilter(BucketScanner scanner, DiscardInfo info, NrMeasurementValues nrMeasurementSettings) {
 		this.scanner = scanner;
 		this.nrMeasurementSettings = nrMeasurementSettings;
-		this.ignored = info.getDiscardedSamples();
-		this.maxRmsLevel = info.getMaxRmsValue();
+		ignored = info.getDiscardedSamples();
+		maxRmsLevel = info.getMaxRmsValue();
 		scanner.reset();
 	}
 	
+	@Override
 	public void reset() {
 		scanner.reset();
 		position = 0;
 	}
 
+	@Override
 	public double filter(double source) {
 		if ((ignored[position] & NoiseLevelDiscardFilter.MARK) == 0) {
 			scanner.addUnscaledSample(source * source);
@@ -47,11 +50,12 @@ public class NoiseLevelDetectionFilter implements ChainableFilter {
 			minimum = Math.sqrt(absMin * maxMin);
 		}
 		
-		logger.fine("%s: noiseLevel=%1.1fdB; S/N=%1.1fdB; window=%1.3fs", this, 20*Math.log10(minimum), 20*Math.log10(maxRmsLevel/minimum), 1.0 * scanner.getBucketSize() / nrMeasurementSettings.sampleRate);
+		logger.trace("%s: noiseLevel=%1.1fdB; S/N=%1.1fdB; window=%1.3fs", this, 20*Math.log10(minimum), 20*Math.log10(maxRmsLevel/minimum), 1.0 * scanner.getBucketSize() / nrMeasurementSettings.sampleRate);
 		
 		return minimum;
 	}
 	
+	@Override
 	public Double getMetaData() {
 		return getNoiseLevel();
 	}
@@ -67,13 +71,15 @@ public class NoiseLevelDetectionFilter implements ChainableFilter {
 		
 		public Factory(long sampleRate, NrMeasurementSettings nrMeasurementSettings) {
 			this.nrMeasurementSettings = nrMeasurementSettings.withSampleRate(sampleRate);
-			this.scanner = new ThreadLocal<BucketScanner>() {
+			scanner = new ThreadLocal<BucketScanner>() {
+				@Override
 				protected BucketScanner initialValue() {
 					return new BucketScanner(Factory.this.nrMeasurementSettings.noiseWinwSamples, BucketScanner.SCALE_48BIT);
 				}
 			};
 		}
 
+		@Override
 		public ChainableFilter createFilter(Object filterMetaData, double minFreq, double maxFreq, byte[] markers) {
 			if (filterMetaData == null) {
 				throw new NullPointerException("filterMetaData");
@@ -94,14 +100,17 @@ public class NoiseLevelDetectionFilter implements ChainableFilter {
 			return metaData;
 		}
 
+		@Override
 		public int getLatency() {
 			return 0;
 		}
 		
+		@Override
 		public int getStartOffset() {
 			return 0;
 		}
 		
+		@Override
 		public int getEndOffset() {
 			return 0;
 		}
