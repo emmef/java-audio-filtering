@@ -37,6 +37,25 @@ public abstract class AbstractServiceManager<T> {
 		}
 		return visitor.visit(new ArrayList<T>(list));
 	}
+	
+	public final List<T> getServices(boolean load) {
+		if (load) {
+			loadFromServiceLoader();
+		}
+		class Ref {
+			List<T> list;
+		};
+		final Ref ref = new Ref();
+		visit(new ProviderVisitor<T>() {
+
+			@Override
+			public org.emmef.servicemanager.ProviderVisitor.VisitState visit(List<T> list) {
+				ref.list = list;
+				return VisitState.SUCCESS;
+			}});
+		
+		return ref.list;
+	}
 
 	public final void loadFromServiceLoader(ClassLoader classLoader) {
 		if (rememberServicesLoaded && !servicesLoaded.compareAndSet(false, true)) {
