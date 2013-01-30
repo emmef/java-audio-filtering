@@ -19,10 +19,9 @@ import org.emmef.config.options.Value;
 import org.emmef.config.program.Program;
 import org.emmef.config.program.ProgramUtils;
 import org.emmef.logging.FormatLogger;
-import org.emmef.logging.FormatLoggerFactory;
 
 public class NoiseRemover implements Program {
-	private static final FormatLogger logger = FormatLoggerFactory.getLogger(NoiseRemover.class);
+	private static final FormatLogger logger = FormatLogger.getLogger(NoiseRemover.class);
 	
 	Builder cmd = Options.create("NoiseRemover");
 	private final SwitchBuilder noiseMeasurement =

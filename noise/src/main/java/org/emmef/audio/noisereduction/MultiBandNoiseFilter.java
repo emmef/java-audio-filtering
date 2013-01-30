@@ -9,11 +9,10 @@ import org.emmef.audio.noisedetection.NoiseLevelDetectionFilter;
 import org.emmef.audio.noisedetection.NoiseLevelDiscardFilter;
 import org.emmef.audio.noisedetection.NrMeasurementSettings;
 import org.emmef.logging.FormatLogger;
-import org.emmef.logging.FormatLoggerFactory;
 
 
 public class MultiBandNoiseFilter {
-	private static final FormatLogger logger = FormatLoggerFactory.getLogger(MultiBandNoiseFilter.class);
+	private static final FormatLogger logger = FormatLogger.getLogger(MultiBandNoiseFilter.class);
 	
 	private final BandSplitFilterSet set;
 	private final FrameType frameType;

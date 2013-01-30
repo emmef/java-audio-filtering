@@ -4,10 +4,9 @@ import org.emmef.audio.buckets.BucketScanner;
 import org.emmef.audio.noisedetection.NrMeasurementSettings;
 import org.emmef.audio.noisedetection.NrMeasurementValues;
 import org.emmef.logging.FormatLogger;
-import org.emmef.logging.FormatLoggerFactory;
 
 public class IrregularNoiseDetectionFilter implements ChainableFilter {
-	private static final FormatLogger logger = FormatLoggerFactory.getLogger(IrregularNoiseDetectionFilter.class);
+	private static final FormatLogger logger = FormatLogger.getLogger(IrregularNoiseDetectionFilter.class);
 	private final BucketScanner scanner;
 	private final double noiseLevel;
 	private final byte[] markers;

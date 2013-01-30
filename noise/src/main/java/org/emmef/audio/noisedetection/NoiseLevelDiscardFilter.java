@@ -4,13 +4,12 @@ import org.emmef.audio.buckets.BucketScanner;
 import org.emmef.audio.noisereduction.ChainableFilter;
 import org.emmef.audio.noisereduction.FilterFactory;
 import org.emmef.logging.FormatLogger;
-import org.emmef.logging.FormatLoggerFactory;
 
 public class NoiseLevelDiscardFilter implements ChainableFilter {
 	public static final byte MARK = 1;
 	public static final byte UNMARK = (byte)(0xFF ^ MARK);
 	
-	private static final FormatLogger logger = FormatLoggerFactory.getLogger(NoiseLevelDiscardFilter.class);
+	private static final FormatLogger logger = FormatLogger.getLogger(NoiseLevelDiscardFilter.class);
 	private final byte[] ignored;
 	private final double thresholdLo;
 	private final double thresholdUnsquared;

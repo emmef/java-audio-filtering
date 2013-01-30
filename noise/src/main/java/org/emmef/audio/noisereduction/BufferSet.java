@@ -5,10 +5,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.emmef.logging.FormatLogger;
-import org.emmef.logging.FormatLoggerFactory;
 
 public class BufferSet {
-	private static final FormatLogger logger = FormatLoggerFactory.getLogger(BufferSet.class);
+	private static final FormatLogger logger = FormatLogger.getLogger(BufferSet.class);
 
 	public interface Handle {
 		Buffer get() throws InterruptedException;

@@ -5,10 +5,9 @@ import org.emmef.audio.noisedetection.NoiseLevelDiscardFilter;
 import org.emmef.audio.noisedetection.NrMeasurementSettings;
 import org.emmef.audio.noisedetection.NrMeasurementValues;
 import org.emmef.logging.FormatLogger;
-import org.emmef.logging.FormatLoggerFactory;
 
 public class NoiseLevelMarkerFilter implements ChainableFilter {
-	private static final FormatLogger log = FormatLoggerFactory.getLogger(NoiseLevelMarkerFilter.class);
+	private static final FormatLogger log = FormatLogger.getLogger(NoiseLevelMarkerFilter.class);
 	public static final byte MARK = 2;
 	public static final byte UNMARK = (byte)(0xFF ^ MARK);
 	

@@ -13,10 +13,9 @@ import java.util.TreeSet;
 import java.util.UUID;
 
 import org.emmef.logging.FormatLogger;
-import org.emmef.logging.FormatLoggerFactory;
 
 public class NativeLoader {
-	private static final FormatLogger log = FormatLoggerFactory.getLogger(NativeLoader.class);
+	private static final FormatLogger log = FormatLogger.getLogger(NativeLoader.class);
 	
 	private static final Object STATIC_LOCK = new Object[0];
 	private static final File FAILED_INITIALIZATION = new File(UUID.randomUUID().toString());

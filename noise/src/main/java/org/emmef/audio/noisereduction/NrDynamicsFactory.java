@@ -5,13 +5,12 @@ import org.emmef.audio.noisereduction.NrDynamics.CubicNoiseReduction;
 import org.emmef.audio.noisereduction.NrDynamics.ExpansionNoiseReduction;
 import org.emmef.audio.noisereduction.NrDynamics.SquareNoiseReduction;
 import org.emmef.logging.FormatLogger;
-import org.emmef.logging.FormatLoggerFactory;
 
 public interface NrDynamicsFactory {
 	NrDynamics create(double noiseLevel);
 	
 	static class Expansion implements NrDynamicsFactory {
-		private static final FormatLogger log = FormatLoggerFactory.getLogger(NrDynamicsFactory.class);
+		private static final FormatLogger log = FormatLogger.getLogger(NrDynamicsFactory.class);
 		public final double relativeThreshold;
 		public final double expansionRatio;
 
@@ -48,7 +47,7 @@ public interface NrDynamicsFactory {
 	}
 	
 	static class Subtraction implements NrDynamicsFactory {
-		private static final FormatLogger log = FormatLoggerFactory.getLogger(Subtraction.class);
+		private static final FormatLogger log = FormatLogger.getLogger(Subtraction.class);
 		public final double threshold;
 		public final double subtractionRatio;
 

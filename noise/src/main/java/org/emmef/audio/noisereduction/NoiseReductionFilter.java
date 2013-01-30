@@ -5,10 +5,9 @@ import org.emmef.audio.buckets.BucketScanner;
 import org.emmef.audio.filter.tools.Integrator;
 import org.emmef.audio.noisedetection.NrMeasurementSettings;
 import org.emmef.logging.FormatLogger;
-import org.emmef.logging.FormatLoggerFactory;
 
 public class NoiseReductionFilter implements ChainableFilter {
-	private static final FormatLogger logger = FormatLoggerFactory.getLogger(NoiseReductionFilter.class);
+	private static final FormatLogger logger = FormatLogger.getLogger(NoiseReductionFilter.class);
 	private final double attackFactor;
 	private final double releaseFactor;
 	private final double[] filterMemory;

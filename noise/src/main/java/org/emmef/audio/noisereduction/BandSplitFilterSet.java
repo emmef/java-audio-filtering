@@ -12,7 +12,6 @@ import org.emmef.audio.filter.iir.butterworth.PassType;
 import org.emmef.audio.filter.tools.Integrator;
 import org.emmef.audio.noisereduction.BufferSet.Handle;
 import org.emmef.logging.FormatLogger;
-import org.emmef.logging.FormatLoggerFactory;
 
 public class BandSplitFilterSet {
 	public enum Direction {
@@ -33,7 +32,7 @@ public class BandSplitFilterSet {
 		}
 	}
 	
-	private static final FormatLogger logger = FormatLoggerFactory.getLogger(BandSplitFilterSet.class);
+	private static final FormatLogger logger = FormatLogger.getLogger(BandSplitFilterSet.class);
 	private static final int LOW_BANDWIDTH_LIMIT = 20;
 	
 	public static final int LAYER_DIFFERENCE = 0;

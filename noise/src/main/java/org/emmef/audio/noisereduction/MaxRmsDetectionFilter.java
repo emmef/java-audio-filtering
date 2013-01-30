@@ -3,10 +3,9 @@ package org.emmef.audio.noisereduction;
 import org.emmef.audio.buckets.BucketScanner;
 import org.emmef.audio.noisedetection.NrMeasurementSettings;
 import org.emmef.logging.FormatLogger;
-import org.emmef.logging.FormatLoggerFactory;
 
 public class MaxRmsDetectionFilter implements ChainableFilter {
-	private static final FormatLogger logger = FormatLoggerFactory.getLogger(MaxRmsDetectionFilter.class);
+	private static final FormatLogger logger = FormatLogger.getLogger(MaxRmsDetectionFilter.class);
 
 	private final BucketScanner bucketScanner;
 	private int count = 0;
