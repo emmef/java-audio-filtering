@@ -45,24 +45,4 @@ public class Checks {
 		return offset + count <= limit;
 	}
 	
-	/**
-	 * Returns {@code argument} if it is not {@code null} and throws otherwise.
-	 * 
-	 * @param argument
-	 *            argument to be returned if it is not {@code null}
-	 * @param argumentName
-	 *            name of the argument that is used for exception message if
-	 *            {@code argument} is {@code null}.
-	 * @return
-	 * @throw {@link IllegalArgumentException} with the message
-	 *        {@code argumentName + " cannot be null"} if {@code argument} is
-	 *        {@code null}.
-	 */
-	public static <T> T checkNotNull(T argument, String argumentName) {
-		if (argument != null) {
-			return argument;
-		}
-		
-		throw new IllegalArgumentException(argumentName + " cannot be null");
-	}
 }

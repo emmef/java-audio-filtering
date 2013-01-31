@@ -1,5 +1,6 @@
 package org.emmef.samples.codec;
 
+import static com.google.common.base.Preconditions.*;
 import static org.emmef.utils.Checks.*;
 
 import java.io.IOException;

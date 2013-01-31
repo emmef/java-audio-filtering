@@ -1,7 +1,8 @@
 package org.emmef.fileformat.iff;
 
 import org.emmef.samples.serialization.Endian;
-import org.emmef.utils.Checks;
+
+import com.google.common.base.Preconditions;
 
 /**
  * Defines the type of interchange format.
@@ -18,7 +19,7 @@ public class TypeDefinition extends InterchangeDefinition {
 
 	public TypeDefinition(String identifier, Endian endian) throws InvalidChunkIdentifierException {
 		super(identifier);
-		Checks.checkNotNull(endian, "Endianness");
+		Preconditions.checkNotNull(endian, "Endianness");
 		this.endian = endian;
 	}
 	

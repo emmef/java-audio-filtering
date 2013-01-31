@@ -4,6 +4,8 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 
+import com.google.common.base.Preconditions;
+
 /**
  * Input stream that reads at most a certain number of bytes
  * from another input stream.
@@ -42,8 +44,8 @@ public class LimitedInputStream extends InputStream {
 			throw new IllegalArgumentException("Read limit must be a positive number");
 		}
 		this.readLimit = readLimit;
-		this.delegate = Checks.checkNotNull(delegate, "delegate");;
-		endOfFileEvent = Checks.checkNotNull(endOfFileAction, "endOfFileAction");
+		this.delegate = Preconditions.checkNotNull(delegate, "delegate");;
+		endOfFileEvent = Preconditions.checkNotNull(endOfFileAction, "endOfFileAction");
 	}
 	
 	/**

@@ -4,12 +4,13 @@ import org.emmef.audio.format.AudioFormat;
 import org.emmef.audio.format.AudioFormatSampleRateSetter;
 import org.emmef.audio.format.AudioFormats;
 import org.emmef.audio.format.SpeakerLocations;
-import org.emmef.utils.Checks;
+
+import com.google.common.base.Preconditions;
 
 public class AudioFormatChunks {
 	
 	public static final AudioFormat fromChunks(AudioFormatChunk formatChunk) {
-		Checks.checkNotNull(formatChunk, "Chunk cannot be null");
+		Preconditions.checkNotNull(formatChunk, "Chunk cannot be null");
 		switch (formatChunk.getFormatType()) {
 		case WAVE_FORMAT_EXTENSIBLE:
 			return fromChunkExtensible(formatChunk);

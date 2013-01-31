@@ -12,7 +12,8 @@ import org.emmef.fileformat.iff.InterchangeChunk.ContentBuilder;
 import org.emmef.fileformat.iff.TypeChunk;
 import org.emmef.fileformat.riff.WaveBuilderFactory;
 import org.emmef.samples.serialization.Serialize;
-import org.emmef.utils.Checks;
+
+import com.google.common.base.Preconditions;
 
 public class AudioFormatChunk extends DelegateContentChunk {
 	public static final List<Byte> TYPE_GUID_PADDING = Collections.unmodifiableList(Arrays.asList(
@@ -51,8 +52,8 @@ public class AudioFormatChunk extends DelegateContentChunk {
 	 * @param format
 	 */
 	public static AudioFormatChunk fromFormat(InterchangeChunk relation, AudioFormat format) {
-		Checks.checkNotNull(relation, "Parent or sibling chunk");
-		byte[] chunkData = createChunkData(Checks.checkNotNull(format, "format"));
+		Preconditions.checkNotNull(relation, "Parent or sibling chunk");
+		byte[] chunkData = createChunkData(Preconditions.checkNotNull(format, "format"));
 		ContentBuilder builder = InterchangeChunk.contentBuilder(WaveBuilderFactory.FMT_DEFINITION);
 		
 		builder.setContent(chunkData, false);

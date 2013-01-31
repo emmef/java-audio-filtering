@@ -6,7 +6,8 @@ import java.io.InputStream;
 
 import org.emmef.samples.serialization.Deserialize;
 import org.emmef.samples.serialization.Endian;
-import org.emmef.utils.Checks;
+
+import com.google.common.base.Preconditions;
 
 
 public abstract class InterchangeChunk implements ChunkInfo {
@@ -124,7 +125,7 @@ public abstract class InterchangeChunk implements ChunkInfo {
 		private long contentLength = -1;
 
 		AbstractBuilder(V definition) {
-			this.definition = Checks.checkNotNull(definition, "Chunk definition");
+			this.definition = Preconditions.checkNotNull(definition, "Chunk definition");
 		}
 		
 		public abstract T build();
@@ -188,7 +189,7 @@ public abstract class InterchangeChunk implements ChunkInfo {
 		}
 		
 		protected void setRelation(ChunkRelation relation, InterchangeChunk relationInstance) {
-			Checks.checkNotNull(relationInstance, "Relation instance");
+			Preconditions.checkNotNull(relationInstance, "Relation instance");
 			if (this.relation != null) {
 				throw new IllegalStateException(getDefinition() + "Relation already set: " + relation + " " + relationInstance);
 			}

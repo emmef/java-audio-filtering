@@ -11,6 +11,7 @@ import org.emmef.audio.nodes.SoundSink;
 class WaveFileWriter implements SoundSink {
 
 	public WaveFileWriter(File file, AudioFormat format, int bufferSize) throws IOException {
+		
 		throw new UnsupportedOperationException("Actual writing of WAV files not yet supported!");
 	}
 
