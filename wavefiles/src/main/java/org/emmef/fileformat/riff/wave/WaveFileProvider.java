@@ -12,8 +12,11 @@ import org.emmef.audio.servicemanager.SoundFormatUnsupportedException;
 import org.emmef.audio.servicemanager.SoundSourceAndSinkProvider;
 import org.emmef.audio.servicemanager.SoundUriUnsupportedException;
 import org.emmef.fileformat.iff.InterchangeFormatException;
+import org.emmef.logging.FormatLogger;
 
 public class WaveFileProvider implements SoundSourceAndSinkProvider {
+	private static final FormatLogger log = FormatLogger.getLogger(WaveFileProvider.class);
+	
 	public static final String WAVE_FILE_FORMAT_IDENTIFIER = "WAVE";
 	public static final String WAVE_AUDIO_DATA_IDENTIFIER = "data";
 	public static final String WAVE_AUDIO_FACT_IDENTIFIER = "fact";
@@ -91,13 +94,31 @@ public class WaveFileProvider implements SoundSourceAndSinkProvider {
 			pathname = args[0];
 		}
 		
-		WaveFileReader waveFile = new WaveFileReader(new File(pathname), 1024);
-		
-		try {
+		try (WaveFileReader waveFile = new WaveFileReader(new File(pathname), 102400)) {
 			System.out.println(waveFile.getAudioFormat());
-		}
-		finally {
-			waveFile.close();
+			
+			long frames = 0;
+			int channels = waveFile.getAudioFormat().getChannels();
+			double square[] = new double[channels];
+			double[] buffer = new double[1048576 * channels];
+			long readFrames;
+			StringBuilder rmsValues = new StringBuilder();
+			while ((readFrames = waveFile.readFrames(buffer)) != 0) {
+				frames += readFrames;
+				int index = 0;
+				for (long i = 0; i < readFrames; i++) {
+					for (int channel = 0; channel < channels; channel++) {
+						double x = buffer[index++];
+						square[channel] += x*x;
+					}
+				}
+				rmsValues.setLength(0);
+				rmsValues.append("RMS values for each channel:");
+				for (int channel = 0; channel < channels; channel++) {
+					rmsValues.append(' ').append(Math.sqrt(square[channel] / readFrames));
+				}
+				log.info("After %d frames, %s", frames, rmsValues);
+			}
 		}
 	}
 }

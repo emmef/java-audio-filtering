@@ -82,28 +82,26 @@ public class FrameReader {
 		int endOffset = offset + channels * count;
 		
 		checkOffsetAndCount(checkNotNull(target, "target").length, endOffset, count);
-		
-		if (endOffset > target.length) {
-			throw new IllegalArgumentException("Attempt to read past end of destination buffer: length=" + target.length + "; offset=" + offset + "; count=" + count + "; channels=" + channels + "; end-offset = " + endOffset);
-		}
-		int actualCount = 0;
+
 		int targetOffset = offset;
-		while (actualCount < count) {
-			if (position < limit) {
-				for (int i = 0; i < channels; i++, position += bytesPerSample) {
-					target[targetOffset++] = decoder.decodeDouble(buffer, position);
+		do {
+			while (targetOffset < endOffset && position < limit) {
+				target[targetOffset++] = decoder.decodeDouble(buffer, position);
+				position += bytesPerSample;
+			}
+			if (targetOffset < endOffset) {
+				int reads = source.read(buffer);
+				if (reads < 1) {
+					return (targetOffset - offset) / channels;
 				}
-				actualCount++;
+				limit = reads;
+				position = 0;
 			}
 			else {
-				int reads = source.read(buffer);
-				if (reads == -1) {
-					return actualCount;
-				}
-				limit = bytesPerFrame * (reads / bytesPerFrame);
+				return (targetOffset - offset) / channels;
 			}
 		}
-		return actualCount;
+		while (true);
 	}
 	
 	/**
@@ -130,25 +128,26 @@ public class FrameReader {
 		int endOffset = offset + channels * count;
 		
 		checkOffsetAndCount(checkNotNull(target, "target").length, endOffset, count);
-		
-		int actualCount = 0;
+
 		int targetOffset = offset;
-		while (actualCount < count) {
-			if (position < limit) {
-				for (int i = 0; i < channels; i++, position += bytesPerSample) {
-					target[targetOffset++] = decoder.decodeFloat(buffer, position);
+		do {
+			while (targetOffset < endOffset && position < limit) {
+				target[targetOffset++] = decoder.decodeFloat(buffer, position);
+				position += bytesPerSample;
+			}
+			if (targetOffset < endOffset) {
+				int reads = source.read(buffer);
+				if (reads < 1) {
+					return (targetOffset - offset) / channels;
 				}
-				actualCount++;
+				limit = reads;
+				position = 0;
 			}
 			else {
-				int reads = source.read(buffer);
-				if (reads == -1) {
-					return actualCount;
-				}
-				limit = bytesPerFrame * (reads / bytesPerFrame);
+				return (targetOffset - offset) / channels;
 			}
 		}
-		return actualCount;
+		while (true);
 	}
 	
 	public int getBytesPerSample() {

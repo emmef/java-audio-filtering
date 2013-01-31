@@ -23,7 +23,7 @@ import org.emmef.samples.codec.SampleCodec;
 import org.emmef.samples.codec.SampleCodecs;
 import org.emmef.utils.Preconditions;
 
-class WaveFileReader implements SoundSource {
+class WaveFileReader implements SoundSource, AutoCloseable {
 	private static final FormatLogger log = FormatLogger.getLogger(WaveFileReader.class);
 	private final AudioFormat audioFormat;
 	private final InputStream stream;
@@ -33,9 +33,6 @@ class WaveFileReader implements SoundSource {
 	
 	WaveFileReader(File file, int bufferSize) throws FileNotFoundException, IOException, InterchangeFormatException {
 		Preconditions.checkNotNull(file, "file");
-		if (bufferSize < 16) {
-			throw new IllegalArgumentException("Need a buffer of at least 16 bytes");
-		}
 		
 		stream = new FileInputStream(file);
 		boolean ready = false;
