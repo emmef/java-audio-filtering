@@ -42,8 +42,8 @@ public class LimitedInputStream extends InputStream {
 			throw new IllegalArgumentException("Read limit must be a positive number");
 		}
 		this.readLimit = readLimit;
-		this.delegate = Preconditions.checkNotNull(delegate, "delegate");;
-		endOfFileEvent = Preconditions.checkNotNull(endOfFileAction, "endOfFileAction");
+		this.delegate = Checks.checkNotNull(delegate, "delegate");;
+		endOfFileEvent = Checks.checkNotNull(endOfFileAction, "endOfFileAction");
 	}
 	
 	/**

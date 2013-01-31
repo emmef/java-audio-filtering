@@ -1,7 +1,7 @@
 package org.emmef.utils;
 
 
-public class Preconditions {
+public class Checks {
 
 	/**
 	 * Checks if combination of {@code offset} and {@code count} falls within

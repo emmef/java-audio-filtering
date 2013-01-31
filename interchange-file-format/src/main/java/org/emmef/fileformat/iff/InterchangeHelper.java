@@ -4,7 +4,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.emmef.utils.Preconditions;
+import org.emmef.utils.Checks;
 
 public class InterchangeHelper {
 
@@ -49,7 +49,7 @@ public class InterchangeHelper {
 	 * @throws IllegalArgumentException if the identifier is not valid
 	 */
 	public static String verifiedChunkIdentifier(String identifier) throws InvalidChunkIdentifierException {
-		Preconditions.checkNotNull(identifier, "identifier");
+		Checks.checkNotNull(identifier, "identifier");
 		
 		if (identifier.length() != 4) {
 			throw new IllegalArgumentException("Identifier must have length 4, not " + identifier.length());
@@ -80,8 +80,8 @@ public class InterchangeHelper {
 	 *             {@link isValidChunkIdentifierCharacter}
 	 */
 	public static String createIdentifier(char[] characters, int offset) throws InvalidChunkIdentifierException {
-		Preconditions.checkNotNull(characters, "Identifier characters");
-		Preconditions.checkOffsetAndCount(characters.length, offset, 4);
+		Checks.checkNotNull(characters, "Identifier characters");
+		Checks.checkOffsetAndCount(characters.length, offset, 4);
 		
 		StringBuilder id = new StringBuilder(4);
 		for (int i = 0; i < 4; i++) {
@@ -109,8 +109,8 @@ public class InterchangeHelper {
 	 *             {@link isValidChunkIdentifierCharacter}
 	 */
 	public static String createIdentifier(byte[] characters, int offset) throws InvalidChunkIdentifierException {
-		Preconditions.checkNotNull(characters, "Identifier characters");
-		Preconditions.checkOffsetAndCount(characters.length, offset, 4);
+		Checks.checkNotNull(characters, "Identifier characters");
+		Checks.checkOffsetAndCount(characters.length, offset, 4);
 		
 		StringBuilder id = new StringBuilder(4);
 		for (int i = 0; i < 4; i++) {
@@ -136,7 +136,7 @@ public class InterchangeHelper {
 	 *             {@link isValidChunkIdentifierCharacter}
 	 */
 	public static String createIdentifier(InputStream stream) throws IOException, InvalidChunkIdentifierException {
-		Preconditions.checkNotNull(stream, "stream");
+		Checks.checkNotNull(stream, "stream");
 		
 		StringBuilder id = new StringBuilder(4);
 		for (int i = 0; i < 4; i++) {

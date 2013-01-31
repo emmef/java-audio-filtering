@@ -21,7 +21,7 @@ import org.emmef.logging.FormatLogger;
 import org.emmef.samples.codec.FrameReader;
 import org.emmef.samples.codec.SampleCodec;
 import org.emmef.samples.codec.SampleCodecs;
-import org.emmef.utils.Preconditions;
+import org.emmef.utils.Checks;
 
 class WaveFileReader implements SoundSource, AutoCloseable {
 	private static final FormatLogger log = FormatLogger.getLogger(WaveFileReader.class);
@@ -32,7 +32,7 @@ class WaveFileReader implements SoundSource, AutoCloseable {
 	private final List<InterchangeChunk> readChunks;
 	
 	WaveFileReader(File file, int bufferSize) throws FileNotFoundException, IOException, InterchangeFormatException {
-		Preconditions.checkNotNull(file, "file");
+		Checks.checkNotNull(file, "file");
 		
 		stream = new FileInputStream(file);
 		boolean ready = false;

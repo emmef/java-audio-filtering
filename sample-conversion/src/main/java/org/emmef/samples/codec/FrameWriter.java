@@ -1,6 +1,6 @@
 package org.emmef.samples.codec;
 
-import static org.emmef.utils.Preconditions.*;
+import static org.emmef.utils.Checks.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -26,7 +26,7 @@ public class FrameWriter {
 	public FrameWriter(int channels, OutputStream output, SampleCodec encoder) {
 		this.channels = channels;
 		this.output = checkNotNull(output, "Output stream cannot be null");
-		this.encoder =checkNotNull(encoder, "Sample encoder");
+		this.encoder = checkNotNull(encoder, "Sample encoder");
 		bytesPerSample = encoder.bytesPerSample();
 		buffer = new byte[channels * bytesPerSample];
 	}

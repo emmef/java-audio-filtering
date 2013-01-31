@@ -2,7 +2,7 @@ package org.emmef.fileformat.iff;
 
 import org.emmef.samples.serialization.Deserialize;
 import org.emmef.samples.serialization.Serialize;
-import org.emmef.utils.Preconditions;
+import org.emmef.utils.Checks;
 
 public final class ContentChunk extends InterchangeChunk implements ContentChunkInfo {
 
@@ -97,7 +97,7 @@ public final class ContentChunk extends InterchangeChunk implements ContentChunk
 	}
 
 	private byte[] getBuffer(int offset, int bytes) {
-		Preconditions.checkOffsetAndCount(content.length, offset, bytes);
+		Checks.checkOffsetAndCount(content.length, offset, bytes);
 		return content;
 	}
 }

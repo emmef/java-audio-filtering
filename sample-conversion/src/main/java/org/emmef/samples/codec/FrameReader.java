@@ -1,6 +1,6 @@
 package org.emmef.samples.codec;
 
-import static org.emmef.utils.Preconditions.*;
+import static org.emmef.utils.Checks.*;
 
 import java.io.EOFException;
 import java.io.IOException;
