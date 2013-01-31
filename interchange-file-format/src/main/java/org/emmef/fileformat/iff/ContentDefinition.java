@@ -35,5 +35,4 @@ public final class ContentDefinition extends InterchangeDefinition {
 		
 		return toString.toString();
 	}
-	
 }

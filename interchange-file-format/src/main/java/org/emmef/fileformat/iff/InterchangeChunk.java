@@ -6,47 +6,52 @@ import java.io.InputStream;
 
 import org.emmef.samples.serialization.Deserialize;
 import org.emmef.samples.serialization.Endian;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
 
 public abstract class InterchangeChunk implements ChunkInfo {
-	public static final long MAX_CONTENT_LENGTH = 0xffffffffL;
-	public static final long MAX_READ_LENGTH = 0xffffL;
-	
+	private static final Logger log = LoggerFactory.getLogger(InterchangeChunk.class);
 	private final InterchangeDefinition definition;
-	private final long contentLength;
+	private long contentLength;
 	private final ChunkRelation relation;
 	private final InterchangeChunk relationInstance;
+	private final boolean readOnly;
 	
-	public static final TypeBuilder typeBuilder(TypeDefinition definition) {
-		return new TypeBuilder(definition);
+	public static final TypeBuilder typeBuilder(TypeDefinition definition, boolean readOnly) {
+		return new TypeBuilder(definition, readOnly);
 	}
 	
-	public static final ContentBuilder contentBuilder(ContentDefinition definition) {
-		return new ContentBuilder(definition);
+	public static final ContentBuilder contentBuilder(ContentDefinition definition, boolean readOnly) {
+		return new ContentBuilder(definition, readOnly);
 	}
 	
-	public static final TypeBuilder typeBuilder(TypeDefinition definition, TypeChunk siblingTypeChunk) {
-		TypeBuilder typeBuilder = new TypeBuilder(definition);
+	public static final TypeBuilder typeBuilder(TypeDefinition definition, TypeChunk siblingTypeChunk, boolean readOnly) {
+		TypeBuilder typeBuilder = new TypeBuilder(definition, readOnly);
 		return typeBuilder.sibling(siblingTypeChunk);
 	}
 	
-	public static final ContentBuilder contentBuilder(ContentDefinition definition, TypeChunk parent) {
-		ContentBuilder contentBuilder = new ContentBuilder(definition);
+	public static final ContentBuilder contentBuilder(ContentDefinition definition, TypeChunk parent, boolean readOnly) {
+		ContentBuilder contentBuilder = new ContentBuilder(definition, readOnly);
 		return contentBuilder.parent(parent);
 	}
 	
-	public static final ContentBuilder contentBuilder(ContentDefinition definition, ContentChunk sibling) {
-		ContentBuilder contentBuilder = new ContentBuilder(definition);
+	public static final ContentBuilder contentBuilder(ContentDefinition definition, ContentChunk sibling, boolean readOnly) {
+		ContentBuilder contentBuilder = new ContentBuilder(definition, readOnly);
 		return contentBuilder.sibling(sibling);
 	}
 	
-	InterchangeChunk(InterchangeDefinition definition, long contentLength, ChunkRelation relation, InterchangeChunk relationInstance) {
+	InterchangeChunk(InterchangeDefinition definition, long contentLength, ChunkRelation relation, InterchangeChunk relationInstance, boolean readOnly) {
 		this.definition = definition;
 		this.contentLength = contentLength;
 		this.relation = relation;
 		this.relationInstance = relationInstance;
+		this.readOnly = readOnly;
+		if (!isReadOnly()) {
+			addDeltaToParent(contentLength + CONTENT_RELATIVE_OFFSET);
+		}
 	}
 	
 	@Override
@@ -68,16 +73,20 @@ public abstract class InterchangeChunk implements ChunkInfo {
 		return relation;
 	}
 	
+	public boolean isReadOnly() {
+		return readOnly;
+	}
+	
 	public final long getOffset() {
 		if (relation == ChunkRelation.SIBLING) {
 			return
-					InterchangeDefinition.CONTENT_RELATIVE_OFFSET +
+					DefinitionInfo.CONTENT_RELATIVE_OFFSET +
 					relationInstance.getContentLength() +
 					relationInstance.getOffset();
 		}
 		if (relation == ChunkRelation.PARENT) {
 			return
-					InterchangeDefinition.CONTENT_RELATIVE_OFFSET +
+					DefinitionInfo.CONTENT_RELATIVE_OFFSET +
 					relationInstance.getDefinition().childRelativeOffset() +
 					relationInstance.getOffset();
 		}
@@ -117,29 +126,60 @@ public abstract class InterchangeChunk implements ChunkInfo {
 		return definition;
 	}
 	
+	public void setContentLength(long newLength) {
+		if (readOnly) {
+			throw new IllegalStateException(this + ": read-only: cannot change content length");
+		}
+		if (newLength == contentLength) {
+			return;
+		}
+		definition.validContentLength(newLength);
+		
+		addDeltaToParent(newLength - contentLength);
+		
+		contentLength = newLength;
+	}
 
+	private void addDeltaToParent(long delta) {
+		InterchangeChunk parent = getParentChunk();
+		if (parent != null) {
+			long relationLength = parent.getContentLength();
+			long newRelationLength = relationLength + delta;
+			log.debug("{}: Add {} to parent {}", getIdentifier(), delta, parent);
+			parent.setContentLength(newRelationLength);
+		}
+	}
+
+	private InterchangeChunk getParentChunk() {
+		InterchangeChunk related = relationInstance;
+		ChunkRelation chunkRelation = relation;
+		while (related != null && chunkRelation != ChunkRelation.PARENT) {
+			chunkRelation = related.relation;
+			related = related.relationInstance;
+		}
+		return related;
+	}
+	
 	public static abstract class AbstractBuilder<T extends InterchangeChunk, V extends InterchangeDefinition> {
 		private final V definition;
 		private ChunkRelation relation;
 		private InterchangeChunk instance;
 		private long contentLength = -1;
+		private final boolean readOnly;
 
-		AbstractBuilder(V definition) {
+		AbstractBuilder(V definition, boolean readOnly) {
+			this.readOnly = readOnly;
 			this.definition = Preconditions.checkNotNull(definition, "Chunk definition");
 		}
 		
 		public abstract T build();
 		
-		public final AbstractBuilder<T, V> contentLength(long length) {
+		final void setContentLength(long length) {
 			if (contentLength != -1) {
 				throw new IllegalStateException("Offset" + " already set for [" + definition + "]");
 			}
-			if (length < 0 || length > MAX_CONTENT_LENGTH) {
-				throw new IllegalArgumentException("Offset" + "must lie within [0.." + MAX_CONTENT_LENGTH + "]");
-			}
-			contentLength = length;
 			
-			return this;
+			assignContentLength(definition.validContentLength(length));
 		}
 		
 		public final V getDefinition() {
@@ -150,20 +190,30 @@ public abstract class InterchangeChunk implements ChunkInfo {
 			return contentLength;
 		}
 		
-		public final AbstractBuilder<T, V> readContentLength(InputStream stream) throws IOException {
+		void readContentLengthInternal(InputStream stream) throws IOException {
 			if (contentLength != -1) {
 				throw new IllegalStateException("Offset" + " already set for [" + definition + "]");
 			}
+			long readLength;
 			switch (getEndian()) {
 			case BIG:
-				contentLength = 0xffffffffL & Deserialize.read32BigEndian(stream);
+				readLength = 0xffffffffL & Deserialize.read32BigEndian(stream);
 				break;
 			case LITTLE:
-				contentLength = 0xffffffffL & Deserialize.read32LittleEndian(stream);
+				readLength = 0xffffffffL & Deserialize.read32LittleEndian(stream);
 				break;
+			default:
+				throw new IllegalStateException("Invalid endianness " + getEndian());
 			}
 			
-			return this;
+			assignContentLength(readLength);
+		}
+
+		private void assignContentLength(long newLength) {
+			if (definition instanceof TypeDefinition && newLength < 4) {
+				throw new IllegalStateException(definition + ": cannot set length smaller than 4, as type chunks always contain a content-type specifier");
+			}
+			contentLength = newLength;
 		}
 		
 		protected ChunkRelation getRelation() {
@@ -193,16 +243,23 @@ public abstract class InterchangeChunk implements ChunkInfo {
 			if (this.relation != null) {
 				throw new IllegalStateException(getDefinition() + "Relation already set: " + relation + " " + relationInstance);
 			}
+			if (!getReadOnly() && relation == ChunkRelation.PARENT && relationInstance.isReadOnly()) {
+				throw new IllegalArgumentException(getDefinition() + ": cannot set read-only relation " + relationInstance);
+			}
 			this.relation = relation;
 			instance = relationInstance;
+		}
+		
+		boolean getReadOnly() {
+			return readOnly;
 		}
 	}
 	
 	public static final class TypeBuilder extends AbstractBuilder<TypeChunk, TypeDefinition> {
 		private String contentType;
 
-		TypeBuilder(TypeDefinition definition) {
-			super(definition);
+		TypeBuilder(TypeDefinition definition, boolean readOnly) {
+			super(definition, readOnly);
 		}
 		
 		@Override
@@ -210,7 +267,11 @@ public abstract class InterchangeChunk implements ChunkInfo {
 			if (contentType == null) {
 				throw new IllegalStateException(getDefinition() + ": content type not set");
 			}
-			return new TypeChunk(getDefinition(), getContentLength(), getRelation(), getInstance(), contentType);
+			if (getContentLength() <= 0 && !getReadOnly()) {
+				/* Set the length of the content-type identifier as current content-length */
+				return new TypeChunk(getDefinition(), 4 , getRelation(), getInstance(), contentType, getReadOnly());
+			}
+			return new TypeChunk(getDefinition(), getContentLength(), getRelation(), getInstance(), contentType, getReadOnly());
 		}
 		
 		public TypeBuilder sibling(TypeChunk sibling) {
@@ -229,13 +290,25 @@ public abstract class InterchangeChunk implements ChunkInfo {
 		
 		public TypeBuilder setContentType(String contentType) throws InvalidContentTypeIdentfierException {
 			checkContentNotSet();
-			contentType = InterchangeHelper.verifiedContentTypeIdentifier(contentType);
+			this.contentType = InterchangeHelper.verifiedContentTypeIdentifier(contentType);
 			
 			return this;
 		}
 		
 		public String getContentType() {
 			return contentType;
+		}
+		
+		TypeBuilder contentLength(long length) {
+			super.setContentLength(length);
+			
+			return this;
+		}
+		
+		public TypeBuilder readContentLength(InputStream stream) throws IOException {
+			readContentLengthInternal(stream);
+			
+			return this;
 		}
 
 		private void checkContentNotSet() {
@@ -250,8 +323,8 @@ public abstract class InterchangeChunk implements ChunkInfo {
 		private static final byte[] EMPTY_CONTENT = new byte[0];
 		private byte[] content;
 
-		ContentBuilder(ContentDefinition definition) {
-			super(definition);
+		ContentBuilder(ContentDefinition definition, boolean readOnly) {
+			super(definition, readOnly);
 		}
 
 		@Override
@@ -259,7 +332,7 @@ public abstract class InterchangeChunk implements ChunkInfo {
 			if (getDefinition().preReadContent()) {
 				allocateContent();
 			}
-			return new ContentChunk(getDefinition(), getContentLength(), getRelation(), getInstance(), content);
+			return new ContentChunk(getDefinition(), getContentLength(), getRelation(), getInstance(), content, getReadOnly());
 		}
 		
 		public ContentBuilder sibling(ContentChunk sibling) {
@@ -296,8 +369,8 @@ public abstract class InterchangeChunk implements ChunkInfo {
 			if (content != null) {
 				return;
 			}
-			if (getContentLength() > MAX_READ_LENGTH) {
-				throw new IllegalStateException(getDefinition() + ": cannot read " + getContentLength() + " bytes of content: maximum is " + MAX_READ_LENGTH + " bytes");
+			if (getContentLength() > MAX_PREREAD_LENGTH) {
+				throw new IllegalStateException(getDefinition() + ": cannot read " + getContentLength() + " bytes of content: maximum is " + MAX_PREREAD_LENGTH + " bytes");
 			}
 			content = new byte[(int)getContentLength()];
 		}
@@ -305,6 +378,18 @@ public abstract class InterchangeChunk implements ChunkInfo {
 		public ContentBuilder setContent(byte[] chunkData, boolean clone) {
 			contentLength(chunkData != null ? chunkData.length : 0);
 			content = chunkData != null ? clone ? chunkData.clone() : chunkData : EMPTY_CONTENT;
+			
+			return this;
+		}
+		
+		public ContentBuilder contentLength(long length) {
+			super.setContentLength(length);
+			
+			return this;
+		}
+		
+		public ContentBuilder readContentLength(InputStream stream) throws IOException {
+			readContentLengthInternal(stream);
 			
 			return this;
 		}

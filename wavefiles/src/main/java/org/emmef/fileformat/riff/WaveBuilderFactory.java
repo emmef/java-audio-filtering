@@ -15,17 +15,17 @@ public enum WaveBuilderFactory implements ContentBuilderFactory {
 	public static final ContentDefinition DATA_DEFINITION;
 	
 	@Override
-	public ContentBuilder create(String id) throws UnrecognizedContentChunkException, InvalidChunkIdentifierException {
+	public ContentBuilder create(String id, boolean readOnly) throws UnrecognizedContentChunkException, InvalidChunkIdentifierException {
 		if (FMT_DEFINITION.getIdentifier().equals(id)) {
-			return InterchangeChunk.contentBuilder(FMT_DEFINITION);
+			return InterchangeChunk.contentBuilder(FMT_DEFINITION, readOnly);
 		}
 		if (DATA_DEFINITION.getIdentifier().equals(id)) {
-			return InterchangeChunk.contentBuilder(DATA_DEFINITION);
+			return InterchangeChunk.contentBuilder(DATA_DEFINITION, readOnly);
 		}
 		if (FACT_DEFINITION.getIdentifier().equals(id)) {
-			return InterchangeChunk.contentBuilder(FACT_DEFINITION);
+			return InterchangeChunk.contentBuilder(FACT_DEFINITION, readOnly);
 		}
-		return InterchangeChunk.contentBuilder(new ContentDefinition(id, 0, null, true));
+		return InterchangeChunk.contentBuilder(new ContentDefinition(id, 0, null, true), readOnly);
 	}
 	
 	static {

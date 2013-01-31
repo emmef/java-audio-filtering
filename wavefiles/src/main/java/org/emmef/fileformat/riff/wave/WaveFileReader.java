@@ -42,7 +42,7 @@ class WaveFileReader implements SoundSource, AutoCloseable {
 			AudioFactChunk factChunk = null;
 			ContentChunk dataChunk = null;
 			
-			readChunks = Parser.readChunks(RiffTypeFactory.INSTACE, stream);
+			readChunks = Parser.readChunks(RiffTypeFactory.INSTACE, stream, true);
 			
 			for (InterchangeChunk chunk : readChunks) {
 				log.debug("CHUNK %s", chunk);

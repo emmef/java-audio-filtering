@@ -3,11 +3,6 @@ package org.emmef.fileformat.iff;
 import org.emmef.samples.serialization.Endian;
 
 public abstract class InterchangeDefinition implements DefinitionInfo {
-	/**
-	 * This is the offset of content inside a chunk, which is always the
-	 * identifier (4 ASCII-bytes) plus the chunk-length (4 byte word).
-	 */
-	public static final long CONTENT_RELATIVE_OFFSET = 8;
 	
 	private final String identifier;
 	
@@ -52,8 +47,14 @@ public abstract class InterchangeDefinition implements DefinitionInfo {
 		return null;
 	}
 	
-	@Override
-	public String toString() {
-		return super.toString();
+	protected final boolean isValidContentLength(long length) {
+		return length >= childRelativeOffset() && length < MAX_CONTENT_LENGTH;
+	}
+	
+	protected long validContentLength(long length) {
+		if (isValidContentLength(length)) {
+			return length;
+		}
+		throw new IllegalArgumentException(this + ": content length must be between [" + childRelativeOffset() + ".." + MAX_CONTENT_LENGTH + "]");
 	}
 }

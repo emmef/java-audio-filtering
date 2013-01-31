@@ -54,7 +54,7 @@ public class AudioFormatChunk extends DelegateContentChunk {
 	public static AudioFormatChunk fromFormat(InterchangeChunk relation, AudioFormat format) {
 		Preconditions.checkNotNull(relation, "Parent or sibling chunk");
 		byte[] chunkData = createChunkData(Preconditions.checkNotNull(format, "format"));
-		ContentBuilder builder = InterchangeChunk.contentBuilder(WaveBuilderFactory.FMT_DEFINITION);
+		ContentBuilder builder = InterchangeChunk.contentBuilder(WaveBuilderFactory.FMT_DEFINITION, false);
 		
 		builder.setContent(chunkData, false);
 		if (relation instanceof TypeChunk) {

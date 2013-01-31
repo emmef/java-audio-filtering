@@ -94,9 +94,11 @@ public class WaveFileProvider implements SoundSourceAndSinkProvider {
 			pathname = args[0];
 		}
 		
-		try (WaveFileReader waveFile = new WaveFileReader(new File(pathname), 102400)) {
-			System.out.println(waveFile.getAudioFormat());
+		try (
+				WaveFileReader waveFile = new WaveFileReader(new File(pathname), 102400);
+				WaveFileWriter waveFileWriter = new WaveFileWriter(null, waveFile.getAudioFormat(), 102400)) {
 			
+			System.out.println(waveFile.getAudioFormat());
 			long frames = 0;
 			int channels = waveFile.getAudioFormat().getChannels();
 			double square[] = new double[channels];

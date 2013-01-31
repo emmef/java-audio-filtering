@@ -15,7 +15,7 @@ import org.emmef.fileformat.iff.TypeChunk;
 
 public class Parser {
 	
-	public static List<InterchangeChunk> readChunks(TypeResolver factory, InputStream stream) throws IOException, InterchangeFormatException {
+	public static List<InterchangeChunk> readChunks(TypeResolver factory, InputStream stream, boolean readOnly) throws IOException, InterchangeFormatException {
 		List<InterchangeChunk> result = new ArrayList<>();
 		String id = InterchangeHelper.createIdentifier(stream);
 		
@@ -25,7 +25,7 @@ public class Parser {
 			throw new UnrecognizedTypeChunkException(id);
 		}
 		
-		TypeBuilder typeBuilder = contentTypeFactory.createBuilder().readContentLengthAndType(stream);
+		TypeBuilder typeBuilder = contentTypeFactory.createBuilder(readOnly).readContentLengthAndType(stream);
 		ContentBuilderFactory contentBuilderFactory = contentTypeFactory.getContentParser(typeBuilder.getContentType());
 		
 		TypeChunk type = typeBuilder.build();
@@ -38,7 +38,7 @@ public class Parser {
 			if (id == null) {
 				break;
 			}
-			ContentBuilder contentFactory = contentBuilderFactory.create(id);
+			ContentBuilder contentFactory = contentBuilderFactory.create(id, readOnly);
 			if (contentFactory != null) {
 				content = linkContentChunk(stream, type, content, contentFactory);
 				result.add(content);

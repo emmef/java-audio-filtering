@@ -5,6 +5,6 @@ import org.emmef.fileformat.iff.InvalidChunkIdentifierException;
 
 public interface ContentBuilderFactory {
 
-	ContentBuilder create(String createIdentifier) throws UnrecognizedContentChunkException, InvalidChunkIdentifierException;
+	ContentBuilder create(String createIdentifier, boolean readOnly) throws UnrecognizedContentChunkException, InvalidChunkIdentifierException;
 
 }

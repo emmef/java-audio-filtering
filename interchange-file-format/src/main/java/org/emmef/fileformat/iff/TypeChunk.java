@@ -3,8 +3,8 @@ package org.emmef.fileformat.iff;
 public final class TypeChunk extends InterchangeChunk implements TypeChunkInfo {
 	private final String contentType;
 
-	TypeChunk(InterchangeDefinition definition, long contentLength, ChunkRelation relation, InterchangeChunk relationInstance, String contentType) {
-		super(definition, contentLength, relation, relationInstance);
+	TypeChunk(InterchangeDefinition definition, long contentLength, ChunkRelation relation, InterchangeChunk relationInstance, String contentType, boolean readOnly) {
+		super(definition, contentLength, relation, relationInstance, readOnly);
 		this.contentType = contentType;
 	}
 	
