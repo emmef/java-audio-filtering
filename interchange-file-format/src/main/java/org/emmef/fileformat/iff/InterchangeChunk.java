@@ -3,9 +3,11 @@ package org.emmef.fileformat.iff;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 import org.emmef.samples.serialization.Deserialize;
 import org.emmef.samples.serialization.Endian;
+import org.emmef.samples.serialization.Serialize;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -126,6 +128,16 @@ public abstract class InterchangeChunk implements ChunkInfo {
 		return definition;
 	}
 	
+	public void write(OutputStream stream) throws IOException {
+		writeId(stream, getIdentifier());
+		if (getEndian() == Endian.BIG) {
+			Serialize.write32BigEndian((int)getContentLength(), stream);
+		}
+		else {
+			Serialize.write32LittleEndian((int)getContentLength(), stream);
+		}
+	}
+	
 	public void setContentLength(long newLength) {
 		if (readOnly) {
 			throw new IllegalStateException(this + ": read-only: cannot change content length");
@@ -158,6 +170,12 @@ public abstract class InterchangeChunk implements ChunkInfo {
 			related = related.relationInstance;
 		}
 		return related;
+	}
+
+	static void writeId(OutputStream stream, String identifier) throws IOException {
+		for (int i = 0; i < 4; i++) {
+			stream.write(identifier.charAt(i));
+		}
 	}
 	
 	public static abstract class AbstractBuilder<T extends InterchangeChunk, V extends InterchangeDefinition> {

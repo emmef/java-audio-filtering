@@ -14,7 +14,23 @@ import org.emmef.fileformat.iff.InterchangeHelper;
 import org.emmef.fileformat.iff.TypeChunk;
 
 public class Parser {
-	
+
+	/**
+	 * Reads Interchange File Format chunks from a file.
+	 * <p>
+	 * The behavior is driven by the resolver that produces chunk factories
+	 * based on the chunk IDs.
+	 * <p>
+	 * The reading process stops when a chunk is encountered that cannot
+	 * be pre-read in memory.
+	 * 
+	 * @param factory drives the behavior for reading the chunks
+	 * @param stream input stream
+	 * @param readOnly consider the chunks as being read only
+	 * @return a list of chunks read
+	 * @throws IOException
+	 * @throws InterchangeFormatException
+	 */
 	public static List<InterchangeChunk> readChunks(TypeResolver factory, InputStream stream, boolean readOnly) throws IOException, InterchangeFormatException {
 		List<InterchangeChunk> result = new ArrayList<>();
 		String id = InterchangeHelper.createIdentifier(stream);
@@ -55,9 +71,15 @@ public class Parser {
 			}
 		}
 		
+		validateChain(result);
+		
 		return result;
 	}
-
+	
+	public static void validateChain(List<InterchangeChunk> chain) {
+		// TODO Implement, created an issue
+	}
+	
 	private static ContentChunk linkContentChunk(InputStream stream, TypeChunk type, ContentChunk content, ContentBuilder contentFactory) throws IOException {
 		if (content == null) {
 			contentFactory.parent(type);

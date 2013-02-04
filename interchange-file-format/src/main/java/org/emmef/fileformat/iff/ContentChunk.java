@@ -1,5 +1,8 @@
 package org.emmef.fileformat.iff;
 
+import java.io.IOException;
+import java.io.OutputStream;
+
 import org.emmef.samples.serialization.Deserialize;
 import org.emmef.samples.serialization.Serialize;
 import org.emmef.utils.Checks;
@@ -75,6 +78,14 @@ public final class ContentChunk extends InterchangeChunk implements ContentChunk
 	}
 	
 	@Override
+	public void write(OutputStream stream) throws IOException {
+		super.write(stream);
+		if (getDefinition().preReadContent()) {
+			stream.write(content, 0, (int)getContentLength());
+		}
+	}
+	
+	@Override
 	public String toString() {
 		StringBuilder text = new StringBuilder();
 		text.append(getDefinition().getIdentifier()).append("[");
@@ -94,6 +105,41 @@ public final class ContentChunk extends InterchangeChunk implements ContentChunk
 		}
 		
 		return text.toString();
+	}
+
+	public StringBuilder logContent(StringBuilder appendTo) {
+		StringBuilder output = appendTo != null ? appendTo : new StringBuilder();
+		if (content != null) {
+			StringBuilder dump1 = new StringBuilder();
+			StringBuilder dump2 = new StringBuilder();
+			boolean odd = false;
+			for (int i = 0; i < content.length; i++) {
+				if (i % 8 == 0) {
+					if (odd) {
+						dump1.append("- ");
+					}
+					else {
+						appendHexDumps(output, dump1, dump2);
+					}
+					odd = !odd;
+				}
+				dump1.append(String.format("%02x ", content[i]));
+				dump2.append(content[i] >= ' ' && content[i] < 127 ? (char)content[i] : '.');
+			}
+			appendHexDumps(output, dump1, dump2);
+		}
+		return output;
+	}
+
+	private void appendHexDumps(StringBuilder output, StringBuilder dump1, StringBuilder dump2) {
+		if (dump1.length() > 0) {
+			while (dump1.length() < 54) {
+				dump1.append(' ');
+			}
+			output.append(dump1).append(dump2).append("\n");
+			dump1.setLength(0);
+			dump2.setLength(0);
+		}
 	}
 
 	private byte[] getBuffer(int offset, int bytes, boolean forWriting) {

@@ -39,7 +39,9 @@ public class WaveFileProvider implements SoundSourceAndSinkProvider {
 	public SoundSource createSource(URI sourceUri, int bufferHint) throws SoundUriUnsupportedException {
 		checkUrlScheme(sourceUri);
 		try {
-			return new WaveFileReader(new File(sourceUri.getSchemeSpecificPart()), getBufferSize(bufferHint));
+			return new WaveFileReader(
+					new File(sourceUri.getSchemeSpecificPart()),
+					getBufferSize(bufferHint));
 		}
 		catch (IOException e) {
 			throw new IllegalStateException(e);
@@ -56,12 +58,17 @@ public class WaveFileProvider implements SoundSourceAndSinkProvider {
 	public SoundSink createSink(URI sourceUri, AudioFormat format, int bufferHint) throws SoundUriUnsupportedException, SoundFormatUnsupportedException {
 		checkUrlScheme(sourceUri);
 		try {
-			throw new SoundUriUnsupportedException("No support for writing yet.");
-//			return new WaveFileWriter(new File(sourceUri.getSchemeSpecificPart()), format, getBufferSize(bufferHint));
+			return new WaveFileWriter(
+					new File(sourceUri.getSchemeSpecificPart()),
+					format,
+					getBufferSize(bufferHint));
 		}
-//		catch (IOException e) {
-//			throw new IllegalStateException(e);
-//		}
+		catch (IOException e) {
+			throw new IllegalStateException(e);
+		}
+		catch (InterchangeFormatException e) {
+			throw new SoundUriUnsupportedException(e);
+		}
 		catch (RuntimeException e) {
 			throw new SoundUriUnsupportedException(e);
 		}
@@ -96,7 +103,7 @@ public class WaveFileProvider implements SoundSourceAndSinkProvider {
 		
 		try (
 				WaveFileReader waveFile = new WaveFileReader(new File(pathname), 102400);
-				WaveFileWriter waveFileWriter = new WaveFileWriter(null, waveFile.getAudioFormat(), 102400)) {
+				WaveFileWriter waveFileWriter = new WaveFileWriter(new File("/tmp/output.wav"), waveFile.getAudioFormat(), 102400)) {
 			
 			System.out.println(waveFile.getAudioFormat());
 			long frames = 0;
@@ -120,6 +127,7 @@ public class WaveFileProvider implements SoundSourceAndSinkProvider {
 					rmsValues.append(' ').append(Math.sqrt(square[channel] / readFrames));
 				}
 				log.info("After %d frames, %s", frames, rmsValues);
+				waveFileWriter.writeFrames(buffer);
 			}
 		}
 	}

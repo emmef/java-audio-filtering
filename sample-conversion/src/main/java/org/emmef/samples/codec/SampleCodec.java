@@ -127,4 +127,22 @@ public interface SampleCodec {
 	 *             sample exceed the buffer size.
 	 */
 	void encodeFloat(float sample, byte[] buffer, int offset);
+	
+	/**
+	 * Returns the same or bigger buffer size that contains a full frame.
+	 * <p>
+	 * A frame contains a number of bytes equal to the number of bytes per
+	 * sample times the number of channels.
+	 * 
+	 * @param size
+	 *            original size request
+	 * @param maxSize
+	 *            maximum size, 0 for no maximum
+	 * @param channels
+	 *            number of channels
+	 * @throws IllegalArgumentException
+	 *             if size or channels are smaller than 1
+	 * @return
+	 */
+	int getFrameBufferSize(int size, int maxSize, int channels);
 }

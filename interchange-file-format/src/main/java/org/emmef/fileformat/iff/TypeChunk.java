@@ -1,5 +1,8 @@
 package org.emmef.fileformat.iff;
 
+import java.io.IOException;
+import java.io.OutputStream;
+
 public final class TypeChunk extends InterchangeChunk implements TypeChunkInfo {
 	private final String contentType;
 
@@ -24,6 +27,12 @@ public final class TypeChunk extends InterchangeChunk implements TypeChunkInfo {
 	@Override
 	public String getContentType() {
 		return contentType;
+	}
+	
+	@Override
+	public void write(OutputStream stream) throws IOException {
+		super.write(stream);
+		writeId(stream, getContentType());
 	}
 	
 	@Override

@@ -20,6 +20,7 @@ import org.emmef.utils.LimitedInputStream;
  * stream that can be set at construction.
  */
 public class FrameReader {
+	private final Object lock = new Object[0];
 	private final int channels;
 	private final byte[] buffer;
 	private final InputStream source;
@@ -54,9 +55,9 @@ public class FrameReader {
 		bytesPerSample = decoder.bytesPerSample();
 		bytesPerFrame = channels * bytesPerSample;
 		
-		buffer = new byte[Math.max((bufferSize + bytesPerFrame - 1) / bytesPerFrame, 1) * bytesPerFrame];
-		this.source = new LimitedInputStream(checkNotNull(source, "source"), maxFrames * bytesPerFrame, WholeFrameEndOfFileAction.create(bytesPerFrame));
 		this.decoder = checkNotNull(decoder, "Sample decoder");
+		buffer = new byte[decoder.getFrameBufferSize(bufferSize, 0, channels)];
+		this.source = new LimitedInputStream(checkNotNull(source, "source"), maxFrames * bytesPerFrame, WholeFrameEndOfFileAction.create(bytesPerFrame));
 	}
 	
 	/**
@@ -80,29 +81,30 @@ public class FrameReader {
 	 *             exceeds the buffer limit.
 	 */
 	public long read(double[] target, int offset, int count) throws IOException {
+		checkOffsetAndCount(checkNotNull(target, "target").length, offset, count, channels);
 		int endOffset = offset + channels * count;
-		
-		checkOffsetAndCount(checkNotNull(target, "target").length, endOffset, count);
-
 		int targetOffset = offset;
-		do {
-			while (targetOffset < endOffset && position < limit) {
-				target[targetOffset++] = decoder.decodeDouble(buffer, position);
-				position += bytesPerSample;
-			}
-			if (targetOffset < endOffset) {
-				int reads = source.read(buffer);
-				if (reads < 1) {
+		
+		synchronized (lock) {
+			do {
+				while (targetOffset < endOffset && position < limit) {
+					target[targetOffset++] = decoder.decodeDouble(buffer, position);
+					position += bytesPerSample;
+				}
+				if (targetOffset < endOffset) {
+					int reads = source.read(buffer);
+					if (reads < 1) {
+						return (targetOffset - offset) / channels;
+					}
+					limit = reads;
+					position = 0;
+				}
+				else {
 					return (targetOffset - offset) / channels;
 				}
-				limit = reads;
-				position = 0;
 			}
-			else {
-				return (targetOffset - offset) / channels;
-			}
+			while (true);
 		}
-		while (true);
 	}
 	
 	/**
@@ -126,29 +128,30 @@ public class FrameReader {
 	 *             exceeds the buffer limit.
 	 */
 	public long read(float[] target, int offset, int count) throws IOException {
+		checkOffsetAndCount(checkNotNull(target, "target").length, offset, count, channels);
 		int endOffset = offset + channels * count;
-		
-		checkOffsetAndCount(checkNotNull(target, "target").length, endOffset, count);
-
 		int targetOffset = offset;
-		do {
-			while (targetOffset < endOffset && position < limit) {
-				target[targetOffset++] = decoder.decodeFloat(buffer, position);
-				position += bytesPerSample;
-			}
-			if (targetOffset < endOffset) {
-				int reads = source.read(buffer);
-				if (reads < 1) {
+		
+		synchronized (lock) {
+			do {
+				while (targetOffset < endOffset && position < limit) {
+					target[targetOffset++] = decoder.decodeFloat(buffer, position);
+					position += bytesPerSample;
+				}
+				if (targetOffset < endOffset) {
+					int reads = source.read(buffer);
+					if (reads < 1) {
+						return (targetOffset - offset) / channels;
+					}
+					limit = reads;
+					position = 0;
+				}
+				else {
 					return (targetOffset - offset) / channels;
 				}
-				limit = reads;
-				position = 0;
 			}
-			else {
-				return (targetOffset - offset) / channels;
-			}
+			while (true);
 		}
-		while (true);
 	}
 	
 	public int getBytesPerSample() {

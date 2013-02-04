@@ -159,12 +159,12 @@ public class AudioFormatChunk extends DelegateContentChunk {
 	}
 	
 	public boolean hasExtendedChannelMask() {
-		return getContentLength() >= OFFSET_EXTENDED_FORMAT_SUB_FORMAT;
+		return getContentLength() >= OFFSET_EXTENDED_FORMAT_SUB_FORMAT && getDWordAt(OFFSET_EXTENDED_FORMAT_CHANNEL_MASK) != 0;
 	}
 	
 	public long getExtendedChannelMask() {
 		checkExtendedFormatAvailable();
-		return getWordAt(OFFSET_EXTENDED_FORMAT_CHANNEL_MASK);
+		return getDWordAt(OFFSET_EXTENDED_FORMAT_CHANNEL_MASK);
 	}
 	
 	public int getExtendedSubFormat() {

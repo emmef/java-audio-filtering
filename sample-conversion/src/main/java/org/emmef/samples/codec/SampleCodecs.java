@@ -2,8 +2,6 @@ package org.emmef.samples.codec;
 
 import static org.emmef.samples.codec.SampleScales.*;
 
-import java.nio.ByteBuffer;
-
 import org.emmef.samples.serialization.Deserialize;
 import org.emmef.samples.serialization.Serialize;
 
@@ -318,44 +316,26 @@ public enum SampleCodecs implements SampleCodec {
 		return Scheme.TWOS_COMPLEMENT;
 	}
 	
-	public static int readPacked24BitsToInt(ByteBuffer buffer) {
-		int sum = buffer.get() & 0xff;
-		sum += (buffer.get() & 0xff) << 8;
-		sum += buffer.get() << 16; // sign extend
-		return sum;
-	}
-	
-	public static int readPadded24BitsToInteger(ByteBuffer buffer) {
-		return buffer.getInt() << 8 >> 8; // tail-the-sign-along, bit-23 interpreted as sign
-	}
-	
-	public static int readScaled24BitsToInteger(ByteBuffer buffer) {
-		return buffer.getInt() >> 8; // discard low bits
-	}
-	
-	public static void main(String[] args) {
-		double value;
-		
-		value = 0.25;
-		for (int i = 0; i < 80; i++) {
-			printValue(value);
-			value *= 1.5;
+	@Override
+	public int getFrameBufferSize(int size, int maxSize, int channels) {
+		if (channels < 1) {
+			throw new IllegalArgumentException("channels must be at least 1");
 		}
-		
-		value = -0.25;
-		for (int i = 0; i < 80; i++) {
-			printValue(value);
-			value *= 1.5;
+		if (size < 1) {
+			throw new IllegalArgumentException("size must be at least 1");
 		}
+		int frameSize = channels * bytesPerSample();
+		int maxFrames = getNextFullNumberOfFrames(maxSize, frameSize);
+		int sizeFrames = getNextFullNumberOfFrames(size, frameSize);
+		
+		return frameSize * Math.min(maxFrames, sizeFrames);
 	}
 
-	private static void printValue(double value) {
-		System.out.printf("Double %-20f; long %-20s int %-20s short %-20s byte %-20s\n",
-				value,
-				Long.toString((long)Math.rint(value)),
-				Integer.toString((int)Math.rint(value)),
-				Integer.toString((short)Math.rint(value)),
-				Integer.toString((byte)Math.rint(value)));
+	private int getNextFullNumberOfFrames(int size, int frameSize) {
+		if (size < 1 || size > Integer.MAX_VALUE - frameSize) {
+			return Integer.MAX_VALUE / frameSize;
+		}
+		
+		return Math.max(1, (size + frameSize - 1) / frameSize);
 	}
-	
 }
