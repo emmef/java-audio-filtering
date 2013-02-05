@@ -29,10 +29,11 @@ class WaveFileReader implements SoundSource, AutoCloseable {
 	private final FrameReader frameReader;
 	private final long frameCount;
 	private final List<InterchangeChunk> readChunks;
+	private final File file;
 	
 	WaveFileReader(File file, int bufferSize) throws FileNotFoundException, IOException, InterchangeFormatException {
 		Preconditions.checkNotNull(file, "file");
-		
+		this.file = file;
 		stream = new FileInputStream(file);
 		boolean ready = false;
 		try {
@@ -43,7 +44,6 @@ class WaveFileReader implements SoundSource, AutoCloseable {
 			readChunks = Parser.readChunks(RiffTypeFactory.INSTACE, stream, true);
 			
 			for (InterchangeChunk chunk : readChunks) {
-				log.debug("CHUNK %s", chunk);
 				String chunkId = chunk.getDefinition().getIdentifier();
 				if (WaveBuilderFactory.FMT_DEFINITION.getIdentifier().equals(chunkId)) {
 					formatChunk = new AudioFormatChunk((ContentChunk)chunk);
@@ -66,34 +66,14 @@ class WaveFileReader implements SoundSource, AutoCloseable {
 			frameCount = obtainValidatedNumberOfFrames(dataChunk, factChunk, formatChunk, audioFormat);
 			frameReader = new FrameReader(audioFormat.getChannels(), bufferSize, stream, frameCount, WaveFileUtil.selectCodec(audioFormat));
 			ready = true;
-			log.info("WAVE IN \"%s\"; %s", file, AudioFormatChunks.fromChunks(formatChunk));
+			log.debug("WAVE IN \"%s\"; %s", file, AudioFormatChunks.fromChunks(formatChunk));
 		}
 		finally {
 			if (!ready) {
+				log.error("Couldn't open for reading " + file);
 				stream.close();
 			}
-			log.error("Couldn't open for reading " + file);
 		}
-	}
-
-	private long obtainValidatedNumberOfFrames(ContentChunk dataChunk, AudioFactChunk factChunk, AudioFormatChunk formatChunk, AudioFormat audioFormat) {
-		long frameCount;
-			int bytesPerFrame;
-			int bytesPerSample = audioFormat.getBytesPerSample();
-			bytesPerFrame = audioFormat.getChannels() * bytesPerSample;
-			if (formatChunk.getBytesPerFrame() != bytesPerFrame) {
-				throw new IllegalStateException("Bytes per frame(" + bytesPerFrame + "), based on channels(" + audioFormat.channels + ") and bytes per sample (" + bytesPerSample + ") not same as in format chunk: " + formatChunk.getBytesPerFrame());
-			}
-			long dataLength = dataChunk.getContentLength();
-			frameCount = dataLength / bytesPerFrame;
-		if (factChunk != null) {
-			long factFrames = factChunk.getSamplePerChannel();
-			if (factFrames > frameCount) {
-				throw new IllegalStateException("Number of frames in " + factChunk.getIdentifier() + "(" + factFrames + ") larger than number in " + dataChunk.getDefinition().getIdentifier() + "(" + frameCount + ")");
-			}
-			frameCount = factFrames;
-		}
-		return frameCount;
 	}
 	
 	@Override
@@ -122,12 +102,12 @@ class WaveFileReader implements SoundSource, AutoCloseable {
 
 	@Override
 	public long readFrames(double[] buffer) throws IOException {
-		return readFrames(buffer, buffer.length / frameReader.getBytesPerFrame());
+		return readFrames(buffer, buffer.length / frameReader.getChannels());
 	}
 
 	@Override
 	public long readFrames(float[] buffer) throws IOException {
-		return readFrames(buffer, buffer.length / frameReader.getBytesPerFrame());
+		return readFrames(buffer, buffer.length / frameReader.getChannels());
 	}
 
 	@Override
@@ -140,5 +120,28 @@ class WaveFileReader implements SoundSource, AutoCloseable {
 		return frameReader.read(buffer, 0, frameCount);
 	}
 	
-	
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + "(type=" + audioFormat + "; file=\"" + file.getAbsolutePath() + "\")";
+	}
+
+	private long obtainValidatedNumberOfFrames(ContentChunk dataChunk, AudioFactChunk factChunk, AudioFormatChunk formatChunk, AudioFormat audioFormat) {
+		long frameCount;
+			int bytesPerFrame;
+			int bytesPerSample = audioFormat.getBytesPerSample();
+			bytesPerFrame = audioFormat.getChannels() * bytesPerSample;
+			if (formatChunk.getBytesPerFrame() != bytesPerFrame) {
+				throw new IllegalStateException("Bytes per frame(" + bytesPerFrame + "), based on channels(" + audioFormat.channels + ") and bytes per sample (" + bytesPerSample + ") not same as in format chunk: " + formatChunk.getBytesPerFrame());
+			}
+			long dataLength = dataChunk.getContentLength();
+			frameCount = dataLength / bytesPerFrame;
+		if (factChunk != null) {
+			long factFrames = factChunk.getSamplePerChannel();
+			if (factFrames > frameCount) {
+				throw new IllegalStateException("Number of frames in " + factChunk.getIdentifier() + "(" + factFrames + ") larger than number in " + dataChunk.getDefinition().getIdentifier() + "(" + frameCount + ")");
+			}
+			frameCount = factFrames;
+		}
+		return frameCount;
+	}
 }

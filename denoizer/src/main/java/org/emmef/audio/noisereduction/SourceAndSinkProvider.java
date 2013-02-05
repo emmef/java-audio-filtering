@@ -6,14 +6,18 @@ import org.emmef.audio.format.AudioFormat;
 import org.emmef.audio.nodes.SoundSink;
 import org.emmef.audio.nodes.SoundSource;
 import org.emmef.audio.servicemanager.SoundSourceAndSinkManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SourceAndSinkProvider {
+	private static final Logger log = LoggerFactory.getLogger(SourceAndSinkProvider.class);
+	
 	private static final SoundSourceAndSinkManager manager = SoundSourceAndSinkManager.getInstance();
 	
 	static {
 		manager.loadFromServiceLoader();
 		StringBuilder builder = new StringBuilder("Source & Sink Providers:\n");
-		System.out.println(manager.appendProviders(builder).toString());
+		log.debug(manager.appendProviders(builder).toString());
 	}
 
 	public static SoundSourceAndSinkManager getInstance() {

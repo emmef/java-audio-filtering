@@ -167,7 +167,7 @@ public class FrameWriter {
 
 	private long unsafeFlush() throws IOException {
 		if (position == 0) {
-			log.debug("Flusing(nothing to flush)");
+			log.trace("Flusing(nothing to flush)");
 			return framePosition.get();
 		}
 		int flushCount = position;

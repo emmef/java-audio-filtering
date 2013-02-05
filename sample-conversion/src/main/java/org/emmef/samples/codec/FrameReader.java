@@ -86,12 +86,12 @@ public class FrameReader {
 		int targetOffset = offset;
 		
 		synchronized (lock) {
-			do {
+			while (targetOffset < endOffset) {
 				while (targetOffset < endOffset && position < limit) {
 					target[targetOffset++] = decoder.decodeDouble(buffer, position);
 					position += bytesPerSample;
 				}
-				if (targetOffset < endOffset) {
+				if (position == limit) {
 					int reads = source.read(buffer);
 					if (reads < 1) {
 						return (targetOffset - offset) / channels;
@@ -99,11 +99,8 @@ public class FrameReader {
 					limit = reads;
 					position = 0;
 				}
-				else {
-					return (targetOffset - offset) / channels;
-				}
 			}
-			while (true);
+			return (targetOffset - offset) / channels;
 		}
 	}
 	
@@ -133,12 +130,12 @@ public class FrameReader {
 		int targetOffset = offset;
 		
 		synchronized (lock) {
-			do {
+			while (targetOffset < endOffset) {
 				while (targetOffset < endOffset && position < limit) {
 					target[targetOffset++] = decoder.decodeFloat(buffer, position);
 					position += bytesPerSample;
 				}
-				if (targetOffset < endOffset) {
+				if (position == limit) {
 					int reads = source.read(buffer);
 					if (reads < 1) {
 						return (targetOffset - offset) / channels;
@@ -146,11 +143,8 @@ public class FrameReader {
 					limit = reads;
 					position = 0;
 				}
-				else {
-					return (targetOffset - offset) / channels;
-				}
 			}
-			while (true);
+			return (targetOffset - offset) / channels;
 		}
 	}
 	
@@ -160,5 +154,9 @@ public class FrameReader {
 	
 	public int getBytesPerFrame() {
 		return bytesPerFrame;
+	}
+	
+	public int getChannels() {
+		return channels;
 	}
 }

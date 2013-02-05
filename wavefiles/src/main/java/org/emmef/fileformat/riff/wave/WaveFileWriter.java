@@ -38,11 +38,13 @@ class WaveFileWriter implements SoundSink {
 	private final FrameWriter frameWriter;
 	private final AudioFormat audioFormat;
 	private long maxFramePosition;
+	private final File file;
 
 	public WaveFileWriter(File file, AudioFormat audioFormat, int bufferSize) throws IOException, InvalidContentTypeIdentfierException {
 		this.audioFormat = audioFormat;
 		checkNotNull(file, "file");
 		checkNotNull(audioFormat, "audioFormat");
+		this.file = file;
 		
 		riffWave = RiffBuilderFactory.INSTANCE.createBuilder(false)
 				.setContentType(RiffBuilderFactory.WAVE_CONTENT_TYPE)
@@ -59,7 +61,6 @@ class WaveFileWriter implements SoundSink {
 		
 		Parser.validateChain(Arrays.asList(riffWave, formatChunk.getChunk(), factChunk, dataChunk));
 		
-		
 		codec = WaveFileUtil.selectCodec(audioFormat);
 		
 		boolean openSuccess = false;
@@ -69,14 +70,13 @@ class WaveFileWriter implements SoundSink {
 			unsafeCommit(true);
 			
 			openSuccess = true;
-			log.info("WAVE OUT \"{}\"; {}", file, AudioFormatChunks.fromChunks(formatChunk));
+			log.debug("WAVE OUT \"{}\"; {}", file, AudioFormatChunks.fromChunks(formatChunk));
 		}
 		finally {
 			if (!openSuccess) {
+				log.error("Couldn't open for writing " + file);
 				stream.close();
-				log.error("Couldn't open " + file);
 			}
-			log.error("Couldn't open for writing " + file);
 		}
 	}
 	
@@ -156,6 +156,11 @@ class WaveFileWriter implements SoundSink {
 	@Override
 	public long writeFrames(float[] source, int frameCount) throws IOException {
 		return frameWriter.writeFrame(source, 0, frameCount);
+	}
+	
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + "(type=" + audioFormat + "; file=\"" + file.getAbsolutePath() + "\")";
 	}
 
 	private long unsafeCommit(boolean truncate) throws IOException {

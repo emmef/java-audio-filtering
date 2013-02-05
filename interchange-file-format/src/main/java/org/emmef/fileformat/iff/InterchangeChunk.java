@@ -157,7 +157,7 @@ public abstract class InterchangeChunk implements ChunkInfo {
 		if (parent != null) {
 			long relationLength = parent.getContentLength();
 			long newRelationLength = relationLength + delta;
-			log.debug("{}: Add {} to parent {}", getIdentifier(), delta, parent);
+			log.trace("{}: Add {} to parent {}", getIdentifier(), delta, parent);
 			parent.setContentLength(newRelationLength);
 		}
 	}

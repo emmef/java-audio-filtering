@@ -3,6 +3,7 @@ package org.emmef.audio.noisereduction;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -19,8 +20,12 @@ import org.emmef.config.options.Value;
 import org.emmef.config.program.Program;
 import org.emmef.config.program.ProgramUtils;
 import org.emmef.logging.FormatLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class NoiseRemover implements Program {
+	private static final Logger log = LoggerFactory.getLogger(NoiseRemover.class);
+	
 	private static final FormatLogger logger = FormatLogger.getLogger(NoiseRemover.class);
 	
 	Builder cmd = Options.create("NoiseRemover");
@@ -167,22 +172,24 @@ public class NoiseRemover implements Program {
 
 	@Override
 	public void run(String[] args) throws Exception {
-		String[] fakeArguments = new String[] {
-			"/home/michel/Music/high-definition/Test_File_2_0_STEREO_PCM.wav",
-			"/tmp",
-			};
+//		String[] fakeArguments = new String[] {
+//			"/home/michel/Music/high-definition/Test_File_2_0_STEREO_PCM.wav",
+//			"/tmp",
+//			};
 //		String[] fakeArguments = new String[] {
 //				"/tmp/PortoBottleOpening.jpg",
 //				"/tmp",
 //		};
-		cmd.parse(fakeArguments);
+		cmd.parse(args);
 		
-		final SoundSource soundSource = SourceAndSinkProvider.createSource(URI.create("file:" + inputFile.getValue().getAbsolutePath()));
-		logger.info("Reading \"" + soundSource + "\"");
+		String sourcePath = inputFile.getValue().getAbsolutePath();
+		final SoundSource soundSource = SourceAndSinkProvider.createSource(new URI("file", URLEncoder.encode(sourcePath, "UTF-8"), null));
+		logger.info("Input: %s", soundSource);
 		final String absolutePath = new File(outputDirectory.getValue(), inputFile.getValue().getName()).getAbsolutePath();
 	
 		try {
-			final SoundSink soundSink = SourceAndSinkProvider.createWithSameMetaData(soundSource, URI.create("file:" + absolutePath));
+			final SoundSink soundSink = SourceAndSinkProvider.createWithSameMetaData(soundSource, new URI("file", URLEncoder.encode(absolutePath, "UTF-8"), null));
+			logger.info("Output: %s", soundSink);
 			try {
 				applyNoiseFilter(soundSource, soundSink);
 			}
@@ -206,20 +213,10 @@ public class NoiseRemover implements Program {
 		}
 		
 		float[] samples = new float[frameType.channels * (int)frameCount];
-		float[] tmp = new float[frameType.channels * (int)frameCount];
 		
-		logger.info("Read from " + soundSink);
-		long totalReads = 0;
-		long reads;
-		do {
-			reads = frameType.channels * soundSource.readFrames(tmp);
-			
-			System.arraycopy(tmp, 0, samples, (int)totalReads, (int)reads);
-			
-			totalReads += reads;
-		}
-		while (reads > 0 && totalReads < samples.length);
-		if (totalReads != samples.length) {
+		logger.info("Reading...");
+		long readFrames = soundSource.readFrames(samples);
+		if (readFrames != frameCount) {
 			throw new IllegalStateException("Couldn't read complete file!");
 		}
 		

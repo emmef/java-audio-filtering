@@ -3,7 +3,9 @@ package org.emmef.fileformat.riff.wave;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLDecoder;
 
 import org.emmef.audio.format.AudioFormat;
 import org.emmef.audio.nodes.SoundSink;
@@ -40,7 +42,7 @@ public class WaveFileProvider implements SoundSourceAndSinkProvider {
 		checkUrlScheme(sourceUri);
 		try {
 			return new WaveFileReader(
-					new File(sourceUri.getSchemeSpecificPart()),
+					getFileFromUri(sourceUri),
 					getBufferSize(bufferHint));
 		}
 		catch (IOException e) {
@@ -59,7 +61,7 @@ public class WaveFileProvider implements SoundSourceAndSinkProvider {
 		checkUrlScheme(sourceUri);
 		try {
 			return new WaveFileWriter(
-					new File(sourceUri.getSchemeSpecificPart()),
+					getFileFromUri(sourceUri),
 					format,
 					getBufferSize(bufferHint));
 		}
@@ -92,6 +94,10 @@ public class WaveFileProvider implements SoundSourceAndSinkProvider {
 		if (!"file".equals(sourceUri.getScheme())) {
 			throw new SoundUriUnsupportedException(sourceUri.toString());
 		}
+	}
+
+	private static File getFileFromUri(URI uri) throws UnsupportedEncodingException {
+		return new File(URLDecoder.decode(uri.getSchemeSpecificPart(), "UTF-8"));
 	}
 	
 	public static void main(String[] args) throws FileNotFoundException, IOException, InterchangeFormatException {
