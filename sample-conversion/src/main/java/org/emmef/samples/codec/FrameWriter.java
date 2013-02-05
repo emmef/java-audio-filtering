@@ -135,7 +135,7 @@ public class FrameWriter {
 		synchronized (lock) {
 			while (sourcePosition < sourceEndPosition) {
 				while (position < buffer.length && sourcePosition < sourceEndPosition) {
-					codec.encodeDouble(source[sourcePosition++], buffer, position);
+					codec.encodeFloat(source[sourcePosition++], buffer, position);
 					position += bytesPerSample;
 				}
 				if (position == buffer.length) {
@@ -174,6 +174,7 @@ public class FrameWriter {
 		int flushCount = position;
 		position = 0;
 		output.write(buffer, 0, flushCount);
+		output.flush();
 		long result = framePosition.addAndGet(flushCount / bytesPerFrame);
 		if (output instanceof FileOutputStream) {
 			long position2 = ((FileOutputStream)output).getChannel().position();

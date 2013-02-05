@@ -119,6 +119,7 @@ public class WaveFileProvider implements SoundSourceAndSinkProvider {
 					for (int channel = 0; channel < channels; channel++) {
 						double x = buffer[index++];
 						square[channel] += x*x;
+//						buffer[index++] += 0.5 * (Math.random() - 0.5);
 					}
 				}
 				rmsValues.setLength(0);
@@ -127,7 +128,8 @@ public class WaveFileProvider implements SoundSourceAndSinkProvider {
 					rmsValues.append(' ').append(Math.sqrt(square[channel] / readFrames));
 				}
 				log.info("After %d frames, %s", frames, rmsValues);
-				waveFileWriter.writeFrames(buffer);
+				
+				waveFileWriter.writeFrames(buffer, (int)readFrames);
 			}
 		}
 	}

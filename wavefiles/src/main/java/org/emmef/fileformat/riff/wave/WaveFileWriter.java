@@ -174,6 +174,7 @@ class WaveFileWriter implements SoundSink {
 		formatChunk.getChunk().write(stream);
 		factChunk.setDWordAt((int)maxFramePosition, 0);
 		dataChunk.write(stream);
+		stream.flush();
 		log.debug("Commit(maxPosition={}; data-length={}; riff-length={};fact-frames={}", maxFramePosition, dataChunk.getContentLength(), riffWave.getContentLength(), factChunk.getDWordAt(0));
 		channel.position(dataChunk.getOffset() + DefinitionInfo.CONTENT_RELATIVE_OFFSET + framePosition * frameWriter.getBytesPerFrame());
 		return framePosition;
