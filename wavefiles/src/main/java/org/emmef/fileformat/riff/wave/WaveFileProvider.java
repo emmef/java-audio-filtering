@@ -76,8 +76,7 @@ public class WaveFileProvider implements SoundSourceAndSinkProvider {
 
 	@Override
 	public SoundSink createWithSameFormat(SoundSource source, URI targetUri) {
-		// TODO Auto-generated method stub
-		return null;
+		return createSink(targetUri, source.getMetrics().getAudioFormat(), DEFAULT_BUFFER_SIZE);
 	}
 
 

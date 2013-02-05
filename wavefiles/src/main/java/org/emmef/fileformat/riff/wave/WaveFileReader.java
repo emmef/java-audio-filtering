@@ -66,11 +66,13 @@ class WaveFileReader implements SoundSource, AutoCloseable {
 			frameCount = obtainValidatedNumberOfFrames(dataChunk, factChunk, formatChunk, audioFormat);
 			frameReader = new FrameReader(audioFormat.getChannels(), bufferSize, stream, frameCount, WaveFileUtil.selectCodec(audioFormat));
 			ready = true;
+			log.info("WAVE IN \"%s\"; %s", file, AudioFormatChunks.fromChunks(formatChunk));
 		}
 		finally {
 			if (!ready) {
 				stream.close();
 			}
+			log.error("Couldn't open for reading " + file);
 		}
 	}
 

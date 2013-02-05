@@ -59,8 +59,6 @@ class WaveFileWriter implements SoundSink {
 		
 		Parser.validateChain(Arrays.asList(riffWave, formatChunk.getChunk(), factChunk, dataChunk));
 		
-		log.info("Chunks\n:{}\n{}\n{}\n{}\n", riffWave, formatChunk.getChunk(), factChunk, dataChunk);
-		log.info("WAVE OUT AudioFormat " + AudioFormatChunks.fromChunks(formatChunk));
 		
 		codec = WaveFileUtil.selectCodec(audioFormat);
 		
@@ -71,11 +69,14 @@ class WaveFileWriter implements SoundSink {
 			unsafeCommit(true);
 			
 			openSuccess = true;
+			log.info("WAVE OUT \"{}\"; {}", file, AudioFormatChunks.fromChunks(formatChunk));
 		}
 		finally {
 			if (!openSuccess) {
 				stream.close();
+				log.error("Couldn't open " + file);
 			}
+			log.error("Couldn't open for writing " + file);
 		}
 	}
 	

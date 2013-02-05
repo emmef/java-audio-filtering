@@ -197,7 +197,6 @@ public class NoiseRemover implements Program {
 	}
 
 	private void applyNoiseFilter(final SoundSource soundSource, final SoundSink soundSink) throws IOException, InterruptedException {
-		float[] samples;
 		final FrameType frameType = soundSource.getMetrics().getAudioFormat();
 		final long frameCount = soundSource.getMetrics().getFrames();
 		logger.trace("Frames=%d; channels=%d", frameCount, frameType.channels);
@@ -206,11 +205,21 @@ public class NoiseRemover implements Program {
 			throw new IllegalStateException("Too many frames (" + frameCount + ") in file for number of channels (" + frameType.channels + ")");
 		}
 		
-		samples = new float[frameType.channels * (int)frameCount];
+		float[] samples = new float[frameType.channels * (int)frameCount];
+		float[] tmp = new float[frameType.channels * (int)frameCount];
 		
 		logger.info("Read from " + soundSink);
-		long reads = soundSource.readFrames(samples);
-		if (reads != frameCount) {
+		long totalReads = 0;
+		long reads;
+		do {
+			reads = frameType.channels * soundSource.readFrames(tmp);
+			
+			System.arraycopy(tmp, 0, samples, (int)totalReads, (int)reads);
+			
+			totalReads += reads;
+		}
+		while (reads > 0 && totalReads < samples.length);
+		if (totalReads != samples.length) {
 			throw new IllegalStateException("Couldn't read complete file!");
 		}
 		

@@ -3,7 +3,6 @@ package org.emmef.samples.codec;
 import static com.google.common.base.Preconditions.*;
 import static org.emmef.utils.Checks.*;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.concurrent.atomic.AtomicLong;
@@ -176,13 +175,6 @@ public class FrameWriter {
 		output.write(buffer, 0, flushCount);
 		output.flush();
 		long result = framePosition.addAndGet(flushCount / bytesPerFrame);
-		if (output instanceof FileOutputStream) {
-			long position2 = ((FileOutputStream)output).getChannel().position();
-			log.debug("Flushing(bytes={}; framePosition={}; filePosition={})", flushCount, result, position2);
-		}
-		else {
-			log.debug("Flushing(bytes={}; framePosition={})", flushCount, result);
-		}
 		return result;
 	}
 }
