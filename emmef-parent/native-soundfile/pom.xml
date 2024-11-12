@@ -1,0 +1,29 @@
+<project>
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<artifactId>emmef-parent</artifactId>
+		<groupId>org.emmef</groupId>
+		<version>1.0.1-SNAPSHOT</version>
+	</parent>
+	<artifactId>native-soundfile</artifactId>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+	<dependencies>
+		<dependency>
+			<groupId>org.emmef</groupId>
+			<artifactId>audionodes</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.emmef</groupId>
+			<artifactId>native-loader</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+	</dependencies>
+</project>

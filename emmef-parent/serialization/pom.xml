@@ -1,0 +1,33 @@
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.emmef</groupId>
+        <artifactId>emmef-parent</artifactId>
+        <version>1.0.1-SNAPSHOT</version>
+    </parent>
+    <artifactId>serialization</artifactId>
+    <name>Serialization</name>
+    <version>1.0.1-SNAPSHOT</version>
+    <description>Methods to (de)serialize floats, doubles and ints of lenths 8, 16, 24, 32 and 64 to streams or byte
+        arrays, big- or little-endian.
+    </description>
+    <dependencies>
+        <dependency>
+            <groupId>org.emmef</groupId>
+            <artifactId>utils</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

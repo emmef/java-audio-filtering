@@ -1,0 +1,46 @@
+<project>
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<artifactId>emmef-parent</artifactId>
+		<groupId>org.emmef</groupId>
+		<version>1.0.1-SNAPSHOT</version>
+	</parent>
+	<artifactId>wavefiles</artifactId>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+			</plugin>
+
+        <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+			<groupId>org.apache.maven.plugins</groupId>
+        </plugin>
+
+		</plugins>
+	</build>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.emmef</groupId>
+			<artifactId>interchange-file-format</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.emmef</groupId>
+			<artifactId>audionodes</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.11</version>
+		</dependency>
+		<dependency>
+			<groupId>org.emmef</groupId>
+			<artifactId>sample-conversion</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+	</dependencies>
+</project>
