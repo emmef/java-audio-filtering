@@ -23,7 +23,7 @@ public class MaxRmsDetectionFilter implements ChainableFilter {
 			logger.trace("%8d MaxRmsDetection sample %1.3e", count, source);
 		}
 		count++;
-		bucketScanner.addUnscaledSample(source * source);
+		bucketScanner.addUnscaledSample(source);
 		return source;
 	}
 	

@@ -57,10 +57,10 @@ public class NoiseLevelDiscardFilter implements ChainableFilter {
 			position++;
 			return source;
 		}
-		scanner.addUnscaledSample(source * source);
+		scanner.addUnscaledSample(source);
 		
 		if (scanner.isWholeBucketScanned()) {
-			final double minimum = scanner.getAverage();
+			final double minimum = scanner.getMeanSquared();
 			if (isWiping) {
 				if (minimum < thresholdLo) {
 					ignored[position] |= MARK;
@@ -143,11 +143,11 @@ public class NoiseLevelDiscardFilter implements ChainableFilter {
 			this.discardedSamples = discardedSamples;
 			this.maxRmsValue = maxRmsValue;
 		}
-		
+
 		public byte[] getDiscardedSamples() {
 			return discardedSamples;
 		}
-		
+
 		public double getMaxRmsValue() {
 			return maxRmsValue;
 		}

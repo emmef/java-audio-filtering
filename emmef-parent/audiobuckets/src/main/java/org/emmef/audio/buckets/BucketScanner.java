@@ -17,7 +17,6 @@ public class BucketScanner {
 	private final LongInteger maximum = new LongInteger(2);
 	private final LongInteger sum = new LongInteger(2);
 	private boolean wholeBucket;
-	
 
 	public BucketScanner(int bucketSize, long scale) {
 		if (bucketSize < 1) {
@@ -33,31 +32,8 @@ public class BucketScanner {
 	}
 	
 	public final void addUnscaledSample(double sample) {
-		addSample((long)(sample * scale));
+		addSample((long)(sample * sample * scale));
 	}
-	
-	public final void addSample(long sample) {
-		final long oldestSample = bucket[bucketPosition];
-		bucket[bucketPosition] = sample;
-		sum.subtract(oldestSample);
-		sum.add(sample);
-		if (wholeBucket) {
-			if (sum.compareTo(minimum) < 0) {
-				minimum.set(sum);
-			}
-			if (sum.compareTo(maximum) > 0) {
-				maximum.set(sum);
-			}
-		}
-		if (bucketPosition == bucket.length - 1) {
-			bucketPosition = 0;
-			wholeBucket = true;
-		}
-		else {
-			bucketPosition++;
-		}
-	}
-	
 	public void reset() {
 		bucketPosition = 0;
 		sum.set(0);
@@ -79,10 +55,6 @@ public class BucketScanner {
 		return bucket.length;
 	}
 	
-	public long getScale() {
-		return scale;
-	}
-
 	public double getMinimum() {
 		return multiplier * minimum.doubleValue();
 	}
@@ -90,12 +62,35 @@ public class BucketScanner {
 	public double getMaximum() {
 		return multiplier * maximum.doubleValue();
 	}
-	
-	public double getSum() {
-		return sum.doubleValue();
-	}
-	
-	public double getAverage() {
+
+	public double getMeanSquared() {
 		return multiplier * sum.doubleValue();
 	}
+
+	public double getRootMeanSquared() {
+		return Math.sqrt(getMeanSquared());
+	}
+
+	private final void addSample(long sample) {
+		final long oldestSample = bucket[bucketPosition];
+		bucket[bucketPosition] = sample;
+		sum.subtract(oldestSample);
+		sum.add(sample);
+		if (wholeBucket) {
+			if (sum.compareTo(minimum) < 0) {
+				minimum.set(sum);
+			}
+			if (sum.compareTo(maximum) > 0) {
+				maximum.set(sum);
+			}
+		}
+		if (bucketPosition == bucket.length - 1) {
+			bucketPosition = 0;
+			wholeBucket = true;
+		}
+		else {
+			bucketPosition++;
+		}
+	}
+
 }

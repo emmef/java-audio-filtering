@@ -39,9 +39,9 @@ public class NoiseLevelMarkerFilter implements ChainableFilter {
 			position++;
 			return input;
 		}
-		scanner.addUnscaledSample(input * input);
+		scanner.addUnscaledSample(input);
 		if (scanner.isWholeBucketScanned()) {
-			final double average = scanner.getAverage();
+			final double average = scanner.getMeanSquared();
 			if (marking) {
 				if (average < threshold) {
 					markers[position] |= MARK;

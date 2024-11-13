@@ -99,8 +99,8 @@ public class NoiseReductionFilter implements ChainableFilter {
 			filterPosition++;
 		}
 		
-		bucketScanner.addUnscaledSample(filterSample * filterSample);
-		final double max = Math.sqrt(bucketScanner.getAverage());
+		bucketScanner.addUnscaledSample(filterSample);
+		final double max = Math.sqrt(bucketScanner.getMeanSquared());
 		if (max > runningMax) {
 			runningMax = max;
 			holdCount = maximumHoldCount;
@@ -143,10 +143,6 @@ public class NoiseReductionFilter implements ChainableFilter {
 		public ChainableFilter createFilter(Object metaData, double minFreq, double maxFreq, byte[] markers) {
 			double noiseLevel = metaData instanceof Double ? (Double)metaData : 1e-3;
 			return new NoiseReductionFilter(latency, ratedTimings, nrSettings, minFreq, nrDynamicsFactory.create(noiseLevel));
-		}
-
-		public Object[] filterCallBack(ChainableFilter[] filters) {
-			return new Object[filters.length];
 		}
 
 		@Override

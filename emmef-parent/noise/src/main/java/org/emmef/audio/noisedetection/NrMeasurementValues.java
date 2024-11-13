@@ -15,7 +15,7 @@ public class NrMeasurementValues extends NrMeasurementSettings {
 		super(
 				settings.minSnRatioDb, settings.maxSnRatioDb, 
 				settings.rmsWin, settings.noiseWin, settings.skipWin, 
-				settings.skipStartSecs,	settings.skipEndSecs, settings.measureIrregularNoise);
+				settings.skipStartSecs,	settings.skipEndSecs, settings.measureIrregularNoise, settings.frequencyScanning);
 		
 		if (sampleRate < 1) {
 			throw new IllegalArgumentException("Samplerate must be at least 1");

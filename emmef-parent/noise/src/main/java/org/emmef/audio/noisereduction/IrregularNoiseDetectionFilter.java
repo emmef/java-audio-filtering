@@ -27,7 +27,7 @@ public class IrregularNoiseDetectionFilter implements ChainableFilter {
 	@Override
 	public double filter(double input) {
 		if ((markers[position] & NoiseLevelMarkerFilter.MARK) != 0) {
-			scanner.addUnscaledSample(input * input);
+			scanner.addUnscaledSample(input);
 		}
 		position++;
 		return input;

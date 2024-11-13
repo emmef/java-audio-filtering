@@ -12,8 +12,9 @@ public class NrMeasurementSettings {
 	public final double skipStartSecs;
 	public final double skipEndSecs;
 	public final int measureIrregularNoise;
+	public final boolean frequencyScanning;
 
-	public NrMeasurementSettings(int minSnRatioDb, int maxSnRatioDb, double rmsWin, double noiseWin, double skipWin, double skipStartSecs, double skipEndSecs, int measureIrregularNoise) {
+	public NrMeasurementSettings(int minSnRatioDb, int maxSnRatioDb, double rmsWin, double noiseWin, double skipWin, double skipStartSecs, double skipEndSecs, int measureIrregularNoise, boolean frequencyScanning) {
 		this.minSnRatioDb = minSnRatioDb;
 		this.maxSnRatioDb = maxSnRatioDb;
 		this.rmsWin = rmsWin;
@@ -22,6 +23,7 @@ public class NrMeasurementSettings {
 		this.skipStartSecs = skipStartSecs;
 		this.skipEndSecs = skipEndSecs;
 		this.measureIrregularNoise = measureIrregularNoise;
+		this.frequencyScanning = frequencyScanning;
 	}
 	
 	public NrMeasurementValues withSampleRate(double sampleRate) {

@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import org.emmef.audio.frame.FrameType;
-import org.emmef.audio.noisedetection.NoiseLevelDetectionFilter;
+import org.emmef.audio.noisedetection.NoiseLevelDetectionFilterFactory;
 import org.emmef.audio.noisedetection.NoiseLevelDiscardFilter;
 import org.emmef.audio.noisedetection.NrMeasurementSettings;
 import org.emmef.logging.FormatLogger;
@@ -40,7 +40,7 @@ public class MultiBandNoiseFilter {
 		List<FilterFactory> filterFactories = new ArrayList<FilterFactory>();
 		filterFactories.add(new MaxRmsDetectionFilter.Factory(frameType.sampleRate, nrMeasurements));
 		filterFactories.add(new NoiseLevelDiscardFilter.Factory(frameType.sampleRate, nrMeasurements));
-		filterFactories.add(new NoiseLevelDetectionFilter.Factory(frameType.sampleRate, nrMeasurements));
+		filterFactories.add(new NoiseLevelDetectionFilterFactory(frameType.sampleRate, nrMeasurements));
 		RatedTimings ratedTimings = new RatedTimings(timings, frameType.sampleRate);
 		if (nrMeasurements.measureIrregularNoise != 0) {
 			filterFactories.add(new NoiseLevelMarkerFilter.Factory(frameType.sampleRate, nrMeasurements));
