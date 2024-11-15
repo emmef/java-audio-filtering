@@ -30,9 +30,8 @@ public class RmsDetection {
 		sampleAndHold = new SampleAndHoldMaximum((int)Math.round(0.5 + hold * sampleRate));
 		entries = new Entry[STEPS + 1];
 		for (int i = 0; i <= STEPS; i++) {
-			double logFactor = Math.pow(WINDOW_FACTOR, STEP_POWER_FACTOR * i);
-			double scale = Math.sqrt(Math.sqrt(logFactor));
-			entries[i] = new Entry(scale);
+			double relativeWindowSize = WINDOW_SHORT * Math.pow(WINDOW_FACTOR, STEP_POWER_FACTOR * i) / WINDOW_PERCEIVED;
+			entries[i] = new Entry(Math.pow(relativeWindowSize, 0.25));
 		}
 
 		reconfigure(sampleRate, attack, hold, release, fastRelease);
