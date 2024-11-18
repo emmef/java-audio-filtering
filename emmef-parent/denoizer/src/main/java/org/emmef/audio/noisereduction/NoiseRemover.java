@@ -104,7 +104,16 @@ public class NoiseRemover implements Program {
 							"1 take the window size of the RMS measurement (--noise-rms-window)\n" +
 							"2 take the window size of the noise measurement (--times-noise-measurement)\n" +
 							"3 take whichever of (1) and (2) is smaller\n" +
-							"4 take arithmic average of (1) and (2)");
+							"4 take arithmetic average of (1) and (2)");
+	private final Value<Integer> frequencyScanning =
+			noiseMeasurement
+					.optional("-lfm", "--level-frequency-measurement")
+					.describedBy("Measure frequency of loudness buckets")
+					.integer()
+					.restrictTo(0, 1)
+					.defaults(0)
+					.describedBy("Take the lowest level that occurs with the highest frequency");
+
 	private final SwitchBuilder expansionReduction =
 			cmd.optional("-E", "--expansion-noise-reduction").describedBy("Parameters for noise reduction, based on expansion");
 
@@ -166,14 +175,6 @@ public class NoiseRemover implements Program {
 			cmd.mandatory().file().validatedBy(ProgramUtils.EXISTING_WRITABLE_TARGET_DIRECTORY).name("outputDirectory")
 					.describedBy("An existing Output directory, to which outp files will be written.");
 
-	private final Value<Integer> frequencyScanning =
-			noiseMeasurement
-					.optional("-lfm", "--level-frequency-measurement")
-					.describedBy("Measure frequency of loudness buckets")
-					.integer()
-					.restrictTo(0, 1)
-					.defaults(0)
-					.describedBy("Take the lowest level that occurs with the highest frequency");
 
 	public static void main(String[] args) {
 		ProgramUtils.main(new NoiseRemover(), args);
@@ -240,6 +241,7 @@ public class NoiseRemover implements Program {
 			nrDynamicsFactory = new NrDynamicsFactory.Subtraction(subtractionFactor.getValue(), subtractionRatio.getValue());
 		}
 		logger.info(nrDynamicsFactory);
+
 		NrMeasurementSettings nrMeasurement = new NrMeasurementSettings(
 				minSnRationDb.getValue(), maxSnRationDb.getValue(),
 				maxRmsWindow.getValue(), noiseRmsWindow.getValue(), skipMarkRmsWindow.getValue(),
@@ -259,6 +261,9 @@ public class NoiseRemover implements Program {
 		}
 		if ("tertz".equalsIgnoreCase(presetName)) {
 			return Arrays.<Double>asList(70.0, 89.0, 112.0, 141.0, 177.0, 223.0, 281.0, 354.0, 446.0, 563.0, 709.0, 893.0, 1125.0, 1417.0, 1786.0, 2250.0, 2835.0, 3572.0, 4500.0, 5670.0, 7143.0, 9000.0, 11339.0, 14287.0);
+		}
+		else if ("dolby-A".equalsIgnoreCase(presetName)) {
+			return Arrays.<Double>asList(80.0, 3000.0, 9000.0);
 		}
 
 		return Collections.singletonList(4500.0);

@@ -19,10 +19,11 @@ public class RmsDetection {
 	private long buffer[] = null;
 	private Entry entries[];
 	private int writeAt = 0;
+	private int processedSamples = 0;
 
 	private final Integration.Factors fastReleaseFactors;
 
-	public RmsDetection(int sampleRate, double attack, double release, double fastRelease) {
+	public RmsDetection(long sampleRate, double attack, double fastRelease, double release) {
 		attackFactors = new Integration.Factors();
 		attackIntegrator = new Integration.DoubleIntegrator(attackFactors);
 		releaseFactors = new Integration.Factors();
@@ -30,13 +31,13 @@ public class RmsDetection {
 		fastReleaseFactors = new Integration.Factors();
 		sampleAndHold = new SampleAndHoldMaximumSmoothRelease(getHoldCount(), fastReleaseFactors);
 		entries = new Entry[STEPS + 1];
-		for (int i = 0; i <= STEPS; i++) {
+		for (int i = 0; i < entries.length; i++) {
 			double relativeWindowSize = WINDOW_SHORT * Math.pow(WINDOW_FACTOR, STEP_POWER_FACTOR * i) / WINDOW_PERCEIVED;
 			double squaredScale = Math.sqrt(relativeWindowSize);
 			entries[i] = new Entry(squaredScale);
 		}
 
-		reconfigure(sampleRate, attack, release, fastRelease);
+		reconfigure(sampleRate, attack, fastRelease, release);
 	}
 
 	public double addSample(double sample) {
@@ -48,16 +49,28 @@ public class RmsDetection {
 		}
 		double detection = Math.sqrt(OUTPUT_SCALE * max);
 		buffer[writeAt] = sumValue;
-		writeAt = (writeAt + 1) % entries.length;
+		writeAt = (writeAt + 1) % buffer.length;
+		processedSamples++;
 
 		double smoothAttack = attackIntegrator.integrate(detection);
 		return releaseIntegrator.addSampleGetValue(smoothAttack);
 	}
 
-	public void reconfigure(int sampleRate, double attack, double release, double fastRelease) {
-		attackFactors.setCount(attack * sampleRate, 1.0);
-		releaseFactors.setCount(release * sampleRate, 1.0);
-		fastReleaseFactors.setCount(fastRelease * sampleRate, 1.0);
+	public double getValue() {
+		if (buffer != null && processedSamples < buffer.length) {
+			double max = entries[0].getValue(processedSamples);
+			for (int i = 1; i < entries.length; i++) {
+				max = Math.max(max, entries[i].getValue(processedSamples));
+			}
+			return max;
+		}
+		return releaseIntegrator.getValue();
+	}
+
+	public void reconfigure(long sampleRate, double attack, double fastRelease, double release) {
+		attackFactors.setCount(attack * sampleRate / Integration.DOUBLE_INTEGRATOR_PROLONGATION_FACTOR, 1.0);
+		releaseFactors.setCount(release * sampleRate / Integration.DOUBLE_INTEGRATOR_PROLONGATION_FACTOR, 1.0);
+		fastReleaseFactors.setCount(fastRelease * sampleRate / Integration.DOUBLE_INTEGRATOR_PROLONGATION_FACTOR, 1.0);
 
 		sampleAndHold.setHoldCount(getHoldCount());
 		sampleAndHold.setValue(0);
@@ -69,6 +82,7 @@ public class RmsDetection {
 			Arrays.fill(buffer, 0);
 		}
 		writeAt = 0;
+		processedSamples = 0;
 
 		for (int i = 0; i <= STEPS; i++) {
 			double logFactor = Math.pow(WINDOW_FACTOR, STEP_POWER_FACTOR * i);
@@ -78,12 +92,32 @@ public class RmsDetection {
 	}
 
 	int getHoldCount() {
-		return (int) (3.0 * attackFactors.getCount());
+		return (int) (3.0 * attackFactors.getCount() * Integration.DOUBLE_INTEGRATOR_PROLONGATION_FACTOR);
+	}
+
+	public int getProcessedSamples() {
+		return processedSamples;
+	}
+
+	public boolean isFullFrameProcessed() {
+		return buffer != null && processedSamples >= buffer.length;
+	}
+
+	public int windowSamples() {
+		return buffer != null ? buffer.length : 0;
+	}
+
+	public void reset() {
+		Arrays.fill(buffer, 0);
+		for (int i = 0; i <= STEPS; i++) {
+			entries[i].reset();
+		}
 	}
 
 	private final class Entry {
 		SampleAndHoldMaximumSmoothRelease sampleAndHold;
 		int readPosition = 0;
+		int bucketSize = 0;
 		long sum = 0;
 		double usedScale = 1.0;
 		double scale;
@@ -95,6 +129,7 @@ public class RmsDetection {
 		}
 
 		void reconfigure(int bucketSize) {
+			this.bucketSize = bucketSize;
 			this.sampleAndHold.setHoldCount(getHoldCount());
 			this.sampleAndHold.setValue(0);
 			this.usedScale = scale / bucketSize;
@@ -107,6 +142,21 @@ public class RmsDetection {
 			sum += input;
 			readPosition = (readPosition + 1) % buffer.length;
 			return sampleAndHold.addSampleGetValue(sum * usedScale);
+		}
+
+		double getValue(int samplesCount) {
+			if (samplesCount >= bucketSize) {
+				return sampleAndHold.getValue();
+			}
+			else if (samplesCount > 0) {
+				return (sum * usedScale) * bucketSize / Math.min(samplesCount, bucketSize);
+			}
+			return 0;
+		}
+
+		void reset() {
+			this.sum = 0;
+			this.readPosition = (buffer.length - bucketSize) % buffer.length;
 		}
 	}
 }

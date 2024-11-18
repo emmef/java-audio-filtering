@@ -16,9 +16,6 @@ public class MaxRmsDetectionFilter implements ChainableFilter {
 	
 	@Override
 	public double filter(double source) {
-//		if (count < 120000 || (count > 7000000 && count < 8000000)) {
-//			logger.trace("%8d MaxRmsDetection sample %1.3e", count, source);
-//		}
 		if (source == 0.0) {
 			logger.trace("%8d MaxRmsDetection sample %1.3e", count, source);
 		}

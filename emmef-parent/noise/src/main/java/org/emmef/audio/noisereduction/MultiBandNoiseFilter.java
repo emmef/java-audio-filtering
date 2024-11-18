@@ -5,20 +5,19 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import org.emmef.audio.frame.FrameType;
-import org.emmef.audio.noisedetection.NoiseLevelDetectionFilterFactory;
-import org.emmef.audio.noisedetection.NoiseLevelDiscardFilter;
-import org.emmef.audio.noisedetection.NrMeasurementSettings;
+import org.emmef.audio.noisedetection.*;
 import org.emmef.logging.FormatLogger;
 
 
 public class MultiBandNoiseFilter {
 	private static final FormatLogger logger = FormatLogger.getLogger(MultiBandNoiseFilter.class);
-	
+
 	private final BandSplitFilterSet set;
 	private final FrameType frameType;
 	private final float[] samples;
-	private final BufferSet buffers = new BufferSet();;
-	
+	private final BufferSet buffers = new BufferSet();
+	;
+
 	public MultiBandNoiseFilter(float[] samples, FrameType frameType, NrMeasurementSettings nrMeasurements, NrDynamicsFactory nrDynamicsFactory, CrossoverInfo crossoverInfo, Timings timings) {
 		this.frameType = frameType;
 		if (samples == null) {
@@ -38,16 +37,22 @@ public class MultiBandNoiseFilter {
 		}
 		this.samples = samples;
 		List<FilterFactory> filterFactories = new ArrayList<FilterFactory>();
-		filterFactories.add(new MaxRmsDetectionFilter.Factory(frameType.sampleRate, nrMeasurements));
-		filterFactories.add(new NoiseLevelDiscardFilter.Factory(frameType.sampleRate, nrMeasurements));
-		filterFactories.add(new NoiseLevelDetectionFilterFactory(frameType.sampleRate, nrMeasurements));
 		RatedTimings ratedTimings = new RatedTimings(timings, frameType.sampleRate);
-		if (nrMeasurements.measureIrregularNoise != 0) {
-			filterFactories.add(new NoiseLevelMarkerFilter.Factory(frameType.sampleRate, nrMeasurements));
-			filterFactories.add(new IrregularNoiseDetectionFilter.Factory(nrMeasurements, ratedTimings));
+		if (nrMeasurements.frequencyScanning) {
+			filterFactories.add(new WeighedRmsLoudnessMeasurementFilter.Factory(frameType.sampleRate, nrMeasurements));
 		}
-		
+		else {
+			filterFactories.add(new MaxRmsDetectionFilter.Factory(frameType.sampleRate, nrMeasurements));
+			filterFactories.add(new NoiseLevelDiscardFilter.Factory(frameType.sampleRate, nrMeasurements));
+			filterFactories.add(new NoiseLevelDetectionFilterFactory(frameType.sampleRate, nrMeasurements));
+			if (nrMeasurements.measureIrregularNoise != 0) {
+				filterFactories.add(new NoiseLevelMarkerFilter.Factory(frameType.sampleRate, nrMeasurements));
+				filterFactories.add(new IrregularNoiseDetectionFilter.Factory(nrMeasurements, ratedTimings));
+			}
+		}
+
 		filterFactories.add(new NoiseReductionFilter.Factory(ratedTimings, nrDynamicsFactory, nrMeasurements));
+
 		set = new BandSplitFilterSet(buffers, frameType.sampleRate, samples.length / frameType.channels, 25, filterFactories, crossoverInfo);
 	}
 
@@ -57,11 +62,11 @@ public class MultiBandNoiseFilter {
 		for (int channel = 0; channel < channels; channel++) {
 			set.filter(samples, channel, channels, latch);
 		}
-		
+
 		latch.await();
-		
+
 		final List<Exception> exceptions = set.getExceptions();
-		
+
 		if (!exceptions.isEmpty()) {
 			logger.error("Exceptions occurred:");
 			for (Exception e : exceptions) {
@@ -70,4 +75,5 @@ public class MultiBandNoiseFilter {
 			throw new IllegalStateException("Exceptions occurred!");
 		}
 	}
+
 }

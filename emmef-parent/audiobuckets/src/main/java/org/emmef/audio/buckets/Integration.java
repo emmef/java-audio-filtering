@@ -1,10 +1,10 @@
 package org.emmef.audio.buckets;
 
 public class Integration {
-	public static double MIN_FACTOR = 1e-30;
+	public static double MIN_FACTOR = 1.0 - 10 * Math.ulp(1.0);
 	public static double MAX_FACTOR = 1.0 - MIN_FACTOR;
-	public static double MAX_COUNT = -1.0 / Math.log(MAX_FACTOR);
-	public static double MIN_COUNT = -1.0 / Math.log(MIN_FACTOR);
+	public static double MAX_COUNT = -1.0 / Math.log(MIN_FACTOR);
+	public static double MIN_COUNT = -1.0 / Math.log(MAX_FACTOR);
 
 	public static double historyFromCount(double count) {
 		return (count < MIN_COUNT)   ? 0.0
@@ -41,9 +41,13 @@ public class Integration {
 			this.input = 1.0;
 		}
 
-		public Factors(double sampleCount) {
+		public Factors(double sampleCount, double scale) {
 			this.history = historyFromCount(sampleCount);
-			this.input = inputFromHistory(sampleCount);
+			this.input = inputFromHistory(history, scale);
+		}
+
+		public Factors(double sampleCount) {
+			this(sampleCount, 1.0);
 		}
 
 		public Factors(Factors factors) {
@@ -72,8 +76,8 @@ public class Integration {
 			input = inputFromHistory(history, scale);
 		}
 
-		double integrated(double history, double input) {
-			return Integration.integrated(history, history, input, input);
+		double integrated(double historyValue, double inputValue) {
+			return Integration.integrated(historyValue, this.history, inputValue, this.input);
 		}
 	}
 
@@ -112,16 +116,16 @@ public class Integration {
 		}
 	}
 
+	public static double DOUBLE_INTEGRATOR_PROLONGATION_FACTOR = calculatePrologationFactor();
+
 	public static final class DoubleIntegrator {
-		public static double PROLONGATION_FACTOR = calculatePrologationFactor();
 
 		private final Factors factors;
-		private double value1;
-		private double value2;
+		private double value1 = 0.0;
+		private double value2 = 0.0;
 
 		public DoubleIntegrator(Factors factors) {
 			this.factors = factors;
-			this.value2 = 0.0;
 		}
 
 		public Factors getFactors() {
@@ -150,20 +154,20 @@ public class Integration {
 		void setScale(double scale) {
 			factors.setScale(scale);
 		}
+	}
 
-		private static double calculatePrologationFactor() {
-			final int COUNT = 10000;
-			final double ONE_OVER_E = Math.exp(-1.0);
-			Factors factors = new Factors(COUNT);
-			DoubleIntegrator integrator = new DoubleIntegrator(factors);
-			integrator.setValue(1.0);
-			int samples = 0;
-			while (integrator.getValue() > ONE_OVER_E) {
-				integrator.integrate(0.0);
-				samples++;
-			}
-			return (double) samples / COUNT;
+	private static double calculatePrologationFactor() {
+		final int COUNT = 10000;
+		final double ONE_OVER_E = Math.exp(-1.0);
+		Factors factors = new Factors(COUNT);
+		DoubleIntegrator integrator = new DoubleIntegrator(factors);
+		integrator.setValue(1.0);
+		int samples = 0;
+		while (integrator.getValue() > ONE_OVER_E) {
+			integrator.integrate(0.0);
+			samples++;
 		}
+		return (double) samples / COUNT;
 	}
 
 }

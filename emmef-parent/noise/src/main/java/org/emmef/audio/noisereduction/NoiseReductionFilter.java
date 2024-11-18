@@ -2,6 +2,7 @@ package org.emmef.audio.noisereduction;
 
 
 import org.emmef.audio.buckets.BucketScanner;
+import org.emmef.audio.buckets.Integration;
 import org.emmef.audio.filter.tools.Integrator;
 import org.emmef.audio.noisedetection.NrMeasurementSettings;
 import org.emmef.logging.FormatLogger;
@@ -26,6 +27,9 @@ public class NoiseReductionFilter implements ChainableFilter {
 	private double rmsValue;
 	private int holdCount = 0;
 	private double runningMax = 0.0;
+	private Integration.Factors longFactors;
+	private Integration.Integrator longIntegrator;
+	private double longRunning = 0.0;
 
 	public NoiseReductionFilter(int latency, RatedTimings timings, NrMeasurementSettings nrSettings, double minFreq, NrDynamics dynamics) {
 		this.dynamics = dynamics;
@@ -44,6 +48,9 @@ public class NoiseReductionFilter implements ChainableFilter {
 		filterPosition = 0;
 		delayPosition = 0;
 		logger.info(this);
+
+		longFactors = new Integration.Factors(timings.sampleRate * 10);
+		longIntegrator = new Integration.Integrator(longFactors);
 	}
 	
 	@Override
@@ -66,6 +73,8 @@ public class NoiseReductionFilter implements ChainableFilter {
 		for (int i = 0; i < delay.length; i++) {
 			delay[i] = 0.0;
 		}
+		longIntegrator.setValue(0);
+		longRunning = 0.0;
 	}
 
 	@Override
@@ -114,15 +123,22 @@ public class NoiseReductionFilter implements ChainableFilter {
 		final double factor = rmsValue < runningMax ? attackFactor : releaseFactor;
 		
 		rmsValue += (runningMax - rmsValue) * factor;
-		
+
+		double longIntegrated = longIntegrator.integrate(rmsValue);
+		if (longRunning == 0.0) {
+			longRunning = longIntegrated;
+		}
+		else {
+			double v = Math.abs(longRunning - longIntegrated) / longRunning;
+			if (v < 0.9 || v > 1.1) {
+				longRunning = longIntegrated;
+//				logger.info(this + " avgRms=" + longRunning);
+			}
+		}
+
 		return dynamics.amplification(rmsValue) * sample;
 	}
-	
-	@Override
-	public Object getMetaData() {
-		return null;
-	}
-	
+
 	public static class Factory implements FilterFactory {
 		private final int latency;
 		
