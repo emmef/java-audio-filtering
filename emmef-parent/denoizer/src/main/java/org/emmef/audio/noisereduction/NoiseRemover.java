@@ -160,7 +160,7 @@ public class NoiseRemover implements Program {
 							"order is twice as high");
 	private final Value<String> crossoverDirection =
 			crossoverSettings.optional("-d", "--direction").describedBy("Direction of crossover filtering")
-					.mandatory().text().defaults("down").name("direction").describedBy("The direction indictaes in which direction" +
+					.mandatory().text().defaults(Direction.UPWARD.name()).name("direction").describedBy("The direction indicates in which direction" +
 							" the crossovers will be evaluated. Down means that the highest crossover will be filtered first.");
 	private final Value<String> crossoverPreset =
 			crossoverSettings.optional("-p", "--preset").describedBy("Crossover preset frequency sets")

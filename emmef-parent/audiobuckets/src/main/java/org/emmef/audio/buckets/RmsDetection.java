@@ -5,34 +5,43 @@ import java.util.Arrays;
 public class RmsDetection {
 	private static final double INPUT_SCALE = Math.pow(2, 32);
 	private static final double OUTPUT_SCALE = 1.0 / INPUT_SCALE;
-	private static final double WINDOW_PERCEIVED = 0.4;
 	private static final double WINDOW_SHORT = 0.002;
-	private static final double WINDOW_FACTOR = WINDOW_PERCEIVED / WINDOW_SHORT;
-	private static final int STEPS = (int) ((Math.log(WINDOW_FACTOR)) / Math.log(Math.sqrt(2.0)));
-	private static final double STEP_POWER_FACTOR = 1.0 / STEPS;
+	private static final double WINDOW_PERCEIVED_DEFAULT = 0.4;
+
+	private final double longWindow;
+	private final double windowFactor;
+	private final int steps;
+	private final double stepPowerFactor;
 
 	private final Integration.Factors attackFactors;
 	private final Integration.DoubleIntegrator attackIntegrator;
 	private final Integration.Factors releaseFactors;
 	private final SampleMaximumSmoothRelease releaseIntegrator;
 	private final SampleAndHoldMaximumSmoothRelease sampleAndHold;
+	private final double peakScale;
 	private long buffer[] = null;
 	private Entry entries[];
 	private int writeAt = 0;
 	private int processedSamples = 0;
 
+
 	private final Integration.Factors fastReleaseFactors;
 
-	public RmsDetection(long sampleRate, double attack, double fastRelease, double release) {
+	public RmsDetection(long sampleRate, double attack, double fastRelease, double release, Double windowSize) {
+		longWindow = windowSize != null ? Math.min(WINDOW_PERCEIVED_DEFAULT, Math.max(WINDOW_SHORT * 4, windowSize)) : WINDOW_PERCEIVED_DEFAULT;
+		windowFactor = longWindow / WINDOW_SHORT;
+		steps = (int) ((Math.log(windowFactor)) / Math.log(Math.sqrt(2.0)));
+		stepPowerFactor = 1.0 / steps;
 		attackFactors = new Integration.Factors();
 		attackIntegrator = new Integration.DoubleIntegrator(attackFactors);
 		releaseFactors = new Integration.Factors();
 		releaseIntegrator = new SampleMaximumSmoothRelease(releaseFactors);
 		fastReleaseFactors = new Integration.Factors();
 		sampleAndHold = new SampleAndHoldMaximumSmoothRelease(getHoldCount(), fastReleaseFactors);
-		entries = new Entry[STEPS + 1];
+		peakScale = Math.sqrt(1.0 / longWindow);
+		entries = new Entry[steps + 1];
 		for (int i = 0; i < entries.length; i++) {
-			double relativeWindowSize = WINDOW_SHORT * Math.pow(WINDOW_FACTOR, STEP_POWER_FACTOR * i) / WINDOW_PERCEIVED;
+			double relativeWindowSize = WINDOW_SHORT * Math.pow(windowFactor, stepPowerFactor * i) / WINDOW_PERCEIVED_DEFAULT;
 			double squaredScale = Math.sqrt(relativeWindowSize);
 			entries[i] = new Entry(squaredScale);
 		}
@@ -43,7 +52,7 @@ public class RmsDetection {
 	public double addSample(double sample) {
 		long sumValue = Math.round(INPUT_SCALE * sample * sample);
 
-		double max = 0.0625 * sampleAndHold.addSampleGetValue(sumValue);
+		double max = peakScale * sampleAndHold.addSampleGetValue(sumValue);
 		for (int i = 0; i < entries.length; i++) {
 			max = Math.max(max, entries[i].addAndGet(sumValue));
 		}
@@ -75,7 +84,7 @@ public class RmsDetection {
 		sampleAndHold.setHoldCount(getHoldCount());
 		sampleAndHold.setValue(0);
 
-		final int windowSize = (int) Math.round(0.5 + WINDOW_PERCEIVED * sampleRate);
+		final int windowSize = (int) Math.round(0.5 + longWindow * sampleRate);
 		if (buffer == null || windowSize != buffer.length) {
 			buffer = new long[windowSize];
 		} else {
@@ -84,14 +93,14 @@ public class RmsDetection {
 		writeAt = 0;
 		processedSamples = 0;
 
-		for (int i = 0; i <= STEPS; i++) {
-			double logFactor = Math.pow(WINDOW_FACTOR, STEP_POWER_FACTOR * i);
+		for (int i = 0; i <= steps; i++) {
+			double logFactor = Math.pow(windowFactor, stepPowerFactor * i);
 			int bucketSize = (int) Math.round(0.5 + WINDOW_SHORT * logFactor * sampleRate);
 			entries[i].reconfigure(bucketSize);
 		}
 	}
 
-	int getHoldCount() {
+	public int getHoldCount() {
 		return (int) (3.0 * attackFactors.getCount() * Integration.DOUBLE_INTEGRATOR_PROLONGATION_FACTOR);
 	}
 
@@ -109,7 +118,7 @@ public class RmsDetection {
 
 	public void reset() {
 		Arrays.fill(buffer, 0);
-		for (int i = 0; i <= STEPS; i++) {
+		for (int i = 0; i <= steps; i++) {
 			entries[i].reset();
 		}
 	}

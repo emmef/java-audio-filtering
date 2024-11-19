@@ -35,9 +35,9 @@ public final class WeighedRmsLoudnessMeasurementFilter implements ChainableFilte
 		this.nrMeasurements = nrMeasurements;
 		this.minFreq = minFreq;
 		this.maxFreq = maxFreq;
-		this.rmsDetection = new RmsDetection(sampleRate, ATTACK_SECONDS, RELEASE_SECONDS, 0.0);
-		this.start = (int)(sampleRate * nrMeasurements.skipStartSecs) + rmsDetection.windowSamples();
-		this.end = markers.length - (int)(sampleRate * nrMeasurements.skipEndSecs);
+		this.rmsDetection = new RmsDetection(sampleRate, ATTACK_SECONDS, RELEASE_SECONDS, 0.0, null);
+		this.start = (int) (sampleRate * nrMeasurements.skipStartSecs) + rmsDetection.windowSamples();
+		this.end = markers.length - (int) (sampleRate * nrMeasurements.skipEndSecs);
 	}
 
 	@Override
@@ -45,14 +45,16 @@ public final class WeighedRmsLoudnessMeasurementFilter implements ChainableFilte
 		if (position > start && position < end) {
 			double detection = Math.max(MIN_DETECTION, rmsDetection.addSample(input));
 			int bucketIndex = indexFromDetection(detection);
-
-			Long value = loudnessFrequency.computeIfAbsent(bucketIndex, integer -> 1L);
-			if (1L != value) {
-				loudnessFrequency.put(bucketIndex, value + 1);
+			Long frequency = loudnessFrequency.get(bucketIndex);
+			if (frequency != null) {
+				loudnessFrequency.put(bucketIndex, frequency + 1);
+			}
+			else {
+				loudnessFrequency.put(bucketIndex, 1L);
 			}
 		}
 		position++;
-		return 0;
+		return input;
 	}
 
 	@Override
@@ -87,21 +89,24 @@ public final class WeighedRmsLoudnessMeasurementFilter implements ChainableFilte
 		int snrIndexMin = maxRmsIndex - (int) (nrMeasurements.maxSnRatioDb * STEPS_PER_DB);
 		int snrIndexMax = maxRmsIndex - (int) (nrMeasurements.minSnRatioDb * STEPS_PER_DB);
 		long mostFrequent = 0;
+//		logger.debug("Frequency per loudness bucket");
+//		for (var entry : loudnessFrequency.entrySet()) {
+//			logger.debug(String.format("  %1.1fdB = %d", dbFromIndex(entry.getKey()), entry.getValue()));
+//		}
+		Integer previousIndex = null;
 		for (var entry : loudnessFrequency.entrySet()) {
 			Integer index = entry.getKey();
 			Long frequency = entry.getValue();
 			if (index > snrIndexMax) {
 				return index;
-			}
-			else if (index < snrIndexMin) {
+			} else if (index < snrIndexMin) {
 				mostFrequent = Math.max(mostFrequent, frequency);
-			}
-			else if (frequency < mostFrequent) {
-				return index;
-			}
-			else {
+			} else if (frequency < mostFrequent) {
+				return previousIndex != null ? previousIndex : index;
+			} else {
 				mostFrequent = frequency;
 			}
+			previousIndex = index;
 		}
 		return maxRmsIndex;
 	}

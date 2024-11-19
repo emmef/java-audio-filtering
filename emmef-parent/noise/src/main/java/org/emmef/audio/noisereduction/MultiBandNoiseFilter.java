@@ -40,6 +40,7 @@ public class MultiBandNoiseFilter {
 		RatedTimings ratedTimings = new RatedTimings(timings, frameType.sampleRate);
 		if (nrMeasurements.frequencyScanning) {
 			filterFactories.add(new WeighedRmsLoudnessMeasurementFilter.Factory(frameType.sampleRate, nrMeasurements));
+			filterFactories.add(new WeighedRmsNoiserReductionFilter.Factory(frameType.sampleRate, nrDynamicsFactory, nrMeasurements));
 		}
 		else {
 			filterFactories.add(new MaxRmsDetectionFilter.Factory(frameType.sampleRate, nrMeasurements));
@@ -49,9 +50,8 @@ public class MultiBandNoiseFilter {
 				filterFactories.add(new NoiseLevelMarkerFilter.Factory(frameType.sampleRate, nrMeasurements));
 				filterFactories.add(new IrregularNoiseDetectionFilter.Factory(nrMeasurements, ratedTimings));
 			}
+			filterFactories.add(new NoiseReductionFilter.Factory(ratedTimings, nrDynamicsFactory, nrMeasurements));
 		}
-
-		filterFactories.add(new NoiseReductionFilter.Factory(ratedTimings, nrDynamicsFactory, nrMeasurements));
 
 		set = new BandSplitFilterSet(buffers, frameType.sampleRate, samples.length / frameType.channels, 25, filterFactories, crossoverInfo);
 	}

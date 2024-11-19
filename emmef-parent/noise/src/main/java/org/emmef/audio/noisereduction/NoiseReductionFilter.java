@@ -55,7 +55,8 @@ public class NoiseReductionFilter implements ChainableFilter {
 	
 	@Override
 	public String toString() {
-		return String.format("NoiseReduction: measurement-window=%1.3fs; attack-time=%1.3fs; release-time=%1.3fs; prediction=%1.3fs",
+		return String.format("NoiseReduction: noise-level=%1.1fdB; measurement-window=%1.3fs; attack-time=%1.3fs; release-time=%1.3fs; prediction=%1.3fs",
+				NrDynamics.valueToDecibel(dynamics.getNoiseLevel()),
 				times.measurementTime,
 				times.attackTime,
 				times.releaseTime,
