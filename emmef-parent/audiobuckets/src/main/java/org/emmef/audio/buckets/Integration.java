@@ -67,16 +67,16 @@ public class Integration {
 			return countFromHistory(history);
 		}
 
-		void setCount(double count, double scale) {
+		public void setCount(double count, double scale) {
 			history = historyFromCount(count);
 			input = inputFromHistory(history, scale);
 		}
 
-		void setScale(double scale) {
+		public void setScale(double scale) {
 			input = inputFromHistory(history, scale);
 		}
 
-		double integrated(double historyValue, double inputValue) {
+		public double integrated(double historyValue, double inputValue) {
 			return Integration.integrated(historyValue, this.history, inputValue, this.input);
 		}
 	}

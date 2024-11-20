@@ -1,5 +1,6 @@
 package org.emmef.audio.noisedetection;
 
+import org.emmef.audio.buckets.Integration;
 import org.emmef.audio.buckets.RmsDetection;
 import org.emmef.audio.noisereduction.ChainableFilter;
 import org.emmef.audio.noisereduction.FilterFactory;
@@ -86,29 +87,47 @@ public final class WeighedRmsLoudnessMeasurementFilter implements ChainableFilte
 
 	int getNoiseIndex() {
 		int maxRmsIndex = loudnessFrequency.lastKey();
-		int snrIndexMin = maxRmsIndex - (int) (nrMeasurements.maxSnRatioDb * STEPS_PER_DB);
-		int snrIndexMax = maxRmsIndex - (int) (nrMeasurements.minSnRatioDb * STEPS_PER_DB);
-		long mostFrequent = 0;
-//		logger.debug("Frequency per loudness bucket");
-//		for (var entry : loudnessFrequency.entrySet()) {
-//			logger.debug(String.format("  %1.1fdB = %d", dbFromIndex(entry.getKey()), entry.getValue()));
-//		}
-		Integer previousIndex = null;
+
+		// Creates a 10-step-per-db array of occurrence frequencies
+		int rangeStart  = loudnessFrequency.firstKey();
+		int rangeEnd = loudnessFrequency.lastKey() ;
+		int rangeSize = 1 + rangeEnd - rangeStart;
+		double range[] = new double[rangeSize];
 		for (var entry : loudnessFrequency.entrySet()) {
-			Integer index = entry.getKey();
-			Long frequency = entry.getValue();
-			if (index > snrIndexMax) {
-				return index;
-			} else if (index < snrIndexMin) {
-				mostFrequent = Math.max(mostFrequent, frequency);
-			} else if (frequency < mostFrequent) {
-				return previousIndex != null ? previousIndex : index;
-			} else {
-				mostFrequent = frequency;
-			}
-			previousIndex = index;
+			range[entry.getKey() - rangeStart] = entry.getValue();
 		}
-		return maxRmsIndex;
+
+		// Applies a zero-phase low-pass filter on the array of occurrence frequencies
+		Integration.Factors integration = new Integration.Factors(10);
+		double integrated;
+		integrated = 0;
+		for (int i = 0; i < range.length; i++) {
+			integrated = integration.integrated(integrated, range[i]);
+			range[i] = integrated;
+		}
+		integrated = 0;
+		for (int i = range.length - 1; i >= 0; i--) {
+			integrated = integration.integrated(integrated, range[i]);
+			range[i] = integrated;
+		}
+
+		// Detects the first maximum between the minimum and maximum allowed noise levels
+		int snrIndexMin = maxRmsIndex - (int) (nrMeasurements.maxSnRatioDb * STEPS_PER_DB) - rangeStart;
+		int snrIndexMax = maxRmsIndex - (int) (nrMeasurements.minSnRatioDb * STEPS_PER_DB) - rangeStart;
+
+		int i = snrIndexMin;
+		double previous = range[i++];
+		int end = Math.min(range.length, snrIndexMax + 1);
+		while (i < end) {
+			double f = range[i];
+			if (f < previous) {
+				break;
+			}
+			previous = f;
+			i++;
+		}
+		// Returns the index of the maximum
+		return i + rangeStart - 1;
 	}
 
 	private static int indexFromDetection(double detection) {
