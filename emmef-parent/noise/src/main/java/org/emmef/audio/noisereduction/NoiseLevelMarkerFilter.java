@@ -1,6 +1,7 @@
 package org.emmef.audio.noisereduction;
 
 import org.emmef.audio.buckets.BucketScanner;
+import org.emmef.audio.buckets.Detection;
 import org.emmef.audio.noisedetection.NoiseLevelDiscardFilter;
 import org.emmef.audio.noisedetection.NrMeasurementSettings;
 import org.emmef.audio.noisedetection.NrMeasurementValues;
@@ -11,7 +12,7 @@ public class NoiseLevelMarkerFilter implements ChainableFilter {
 	public static final byte MARK = 2;
 	public static final byte UNMARK = (byte)(0xFF ^ MARK);
 	
-	private final BucketScanner scanner;
+	private final Detection scanner;
 	private final byte[] markers;
 	private final double noiseLevel;
 	private final double threshold;
@@ -19,11 +20,11 @@ public class NoiseLevelMarkerFilter implements ChainableFilter {
 	private int marks;
 	private boolean marking = false;
 
-	NoiseLevelMarkerFilter(BucketScanner bucketScanner, byte[] markers, double noiseLevel) {
+	NoiseLevelMarkerFilter(Detection bucketScanner, byte[] markers, double noiseLevel) {
 		scanner = bucketScanner;
 		this.markers = markers;
 		this.noiseLevel = noiseLevel;
-		threshold = noiseLevel * noiseLevel * 1.01;
+		threshold = noiseLevel * 1.01;
 		reset();
 	}
 
@@ -39,9 +40,8 @@ public class NoiseLevelMarkerFilter implements ChainableFilter {
 			position++;
 			return input;
 		}
-		scanner.addUnscaledSample(input);
+		final double average = scanner.addSample(input);
 		if (scanner.isWholeBucketScanned()) {
-			final double average = scanner.getMeanSquared();
 			if (marking) {
 				if (average < threshold) {
 					markers[position] |= MARK;
@@ -85,15 +85,12 @@ public class NoiseLevelMarkerFilter implements ChainableFilter {
 	}
 
 	public static class Factory implements FilterFactory {
-		private final ThreadLocal<BucketScanner> scanner;
+		private final ThreadLocal<Detection> scanner = new ThreadLocal<>();
 		private final NrMeasurementValues nrMeasurements;
 		
 		public Factory(long samplerate, NrMeasurementSettings nrMeasurements) {
 			this.nrMeasurements = nrMeasurements.withSampleRate(samplerate);
-			scanner = new ThreadLocal<BucketScanner>() {@Override
-			protected BucketScanner initialValue() {
-				return new BucketScanner(Factory.this.nrMeasurements.noiseWinwSamples, BucketScanner.SCALE_48BIT);
-			}};
+			scanner.set(new BucketScanner(Factory.this.nrMeasurements.noiseWinwSamples, BucketScanner.SCALE_48BIT));
 		}
 
 		@Override

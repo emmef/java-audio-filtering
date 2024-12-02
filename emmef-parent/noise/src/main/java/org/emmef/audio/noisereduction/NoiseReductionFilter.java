@@ -2,6 +2,7 @@ package org.emmef.audio.noisereduction;
 
 
 import org.emmef.audio.buckets.BucketScanner;
+import org.emmef.audio.buckets.Detection;
 import org.emmef.audio.buckets.Integration;
 import org.emmef.audio.filter.tools.Integrator;
 import org.emmef.audio.noisedetection.NrMeasurementSettings;
@@ -16,7 +17,7 @@ public class NoiseReductionFilter implements ChainableFilter {
 	
 	
 	private final NrDynamics dynamics;
-	private final BucketScanner bucketScanner;
+	private final Detection bucketScanner;
 	private final int maximumHoldCount;
 	private final Times times;
 	
@@ -108,9 +109,8 @@ public class NoiseReductionFilter implements ChainableFilter {
 		else {
 			filterPosition++;
 		}
-		
-		bucketScanner.addUnscaledSample(filterSample);
-		final double max = Math.sqrt(bucketScanner.getMeanSquared());
+
+		final double max = bucketScanner.addSample(filterSample); // Math.sqrt(bucketScanner.getMeanSquared());
 		if (max > runningMax) {
 			runningMax = max;
 			holdCount = maximumHoldCount;

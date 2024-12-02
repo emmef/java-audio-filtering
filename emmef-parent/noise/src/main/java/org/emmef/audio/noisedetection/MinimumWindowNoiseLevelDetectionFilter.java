@@ -1,6 +1,7 @@
 package org.emmef.audio.noisedetection;
 
 import org.emmef.audio.buckets.BucketScanner;
+import org.emmef.audio.buckets.Detection;
 import org.emmef.audio.noisedetection.NoiseLevelDiscardFilter.DiscardInfo;
 import org.emmef.audio.noisereduction.ChainableFilter;
 import org.emmef.audio.noisereduction.FilterFactory;
@@ -9,13 +10,13 @@ import org.emmef.logging.FormatLogger;
 public class MinimumWindowNoiseLevelDetectionFilter implements NoiseLevelDetectionFilter {
 	private static final FormatLogger logger = FormatLogger.getLogger(MinimumWindowNoiseLevelDetectionFilter.class);
 	
-	private final BucketScanner scanner;
+	private final Detection scanner;
 	private final byte[] ignored;
 	private int position;
 	private final double maxRmsLevel;
 	private final NrMeasurementValues nrMeasurementSettings;
 
-	public MinimumWindowNoiseLevelDetectionFilter(BucketScanner scanner, DiscardInfo info, NrMeasurementValues nrMeasurementSettings) {
+	public MinimumWindowNoiseLevelDetectionFilter(Detection scanner, DiscardInfo info, NrMeasurementValues nrMeasurementSettings) {
 		this.scanner = scanner;
 		this.nrMeasurementSettings = nrMeasurementSettings;
 		ignored = info.getDiscardedSamples();
@@ -32,7 +33,7 @@ public class MinimumWindowNoiseLevelDetectionFilter implements NoiseLevelDetecti
 	@Override
 	public double filter(double source) {
 		if ((ignored[position] & NoiseLevelDiscardFilter.MARK) == 0) {
-			scanner.addUnscaledSample(source);
+			scanner.addSample(source);
 		}
 		position++;
 		return source;

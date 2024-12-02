@@ -1,6 +1,7 @@
 package org.emmef.audio.noisedetection;
 
 import org.emmef.audio.buckets.BucketScanner;
+import org.emmef.audio.buckets.Detection;
 import org.emmef.audio.noisereduction.ChainableFilter;
 import org.emmef.audio.noisereduction.FilterFactory;
 import org.emmef.logging.FormatLogger;
@@ -14,7 +15,7 @@ public class NoiseLevelDiscardFilter implements ChainableFilter {
 	private final double thresholdLo;
 	private final double thresholdUnsquared;
 	
-	private final BucketScanner scanner;
+	private final Detection scanner;
 	private int position = 0;
 	private boolean isWiping;
 	private int ignoredCount;
@@ -22,13 +23,13 @@ public class NoiseLevelDiscardFilter implements ChainableFilter {
 	private final int endPosition;
 	private final double maxRmsLevel;
 
-	public NoiseLevelDiscardFilter(byte[] ignored, BucketScanner scanner, NrMeasurementValues nrMeasurements, double maxRmsLevel) {
+	public NoiseLevelDiscardFilter(byte[] ignored, Detection scanner, NrMeasurementValues nrMeasurements, double maxRmsLevel) {
 		this.ignored = ignored;
 		this.scanner = scanner;
 		this.nrMeasurements = nrMeasurements;
 		this.maxRmsLevel = maxRmsLevel;
 		thresholdUnsquared = maxRmsLevel / nrMeasurements.maxSnRatio;
-		thresholdLo = thresholdUnsquared * thresholdUnsquared;
+		thresholdLo = thresholdUnsquared;
 		endPosition = ignored.length - nrMeasurements.skipEndSamples;
 		reset();
 	}
@@ -57,10 +58,9 @@ public class NoiseLevelDiscardFilter implements ChainableFilter {
 			position++;
 			return source;
 		}
-		scanner.addUnscaledSample(source);
+		final double minimum = scanner.addSample(source);
 		
 		if (scanner.isWholeBucketScanned()) {
-			final double minimum = scanner.getMeanSquared();
 			if (isWiping) {
 				if (minimum < thresholdLo) {
 					ignored[position] |= MARK;
@@ -96,7 +96,7 @@ public class NoiseLevelDiscardFilter implements ChainableFilter {
 
 	public static class Factory implements FilterFactory {
 		private final NrMeasurementValues nrMeasurements;
-		private final ThreadLocal<BucketScanner> scanner = new ThreadLocal<BucketScanner>();
+		private final ThreadLocal<Detection> scanner = new ThreadLocal<>();
 
 		public Factory(final long samplerate, final NrMeasurementSettings nrMeasurements) {
 			this.nrMeasurements = nrMeasurements.withSampleRate(samplerate);

@@ -1,21 +1,17 @@
 package org.emmef.audio.noisedetection;
 
 import org.emmef.audio.buckets.BucketScanner;
+import org.emmef.audio.buckets.Detection;
 import org.emmef.audio.noisereduction.ChainableFilter;
 import org.emmef.audio.noisereduction.FilterFactory;
 
 public class NoiseLevelDetectionFilterFactory implements FilterFactory {
-	private ThreadLocal<BucketScanner> scanner;
+	private ThreadLocal<Detection> scanner = new ThreadLocal<>();
 	private final NrMeasurementValues nrMeasurementSettings;
 
 	public NoiseLevelDetectionFilterFactory(long sampleRate, NrMeasurementSettings nrMeasurementSettings) {
 		this.nrMeasurementSettings = nrMeasurementSettings.withSampleRate(sampleRate);
-		scanner = new ThreadLocal<BucketScanner>() {
-			@Override
-			protected BucketScanner initialValue() {
-				return new BucketScanner(NoiseLevelDetectionFilterFactory.this.nrMeasurementSettings.noiseWinwSamples, BucketScanner.SCALE_48BIT);
-			}
-		};
+		scanner.set(new BucketScanner(NoiseLevelDetectionFilterFactory.this.nrMeasurementSettings.noiseWinwSamples, BucketScanner.SCALE_48BIT));
 	}
 
 	@Override

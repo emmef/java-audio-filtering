@@ -1,5 +1,6 @@
 package org.emmef.audio.noisereduction;
 
+import org.emmef.audio.buckets.Detection;
 import org.emmef.audio.buckets.RmsDetection;
 import org.emmef.audio.noisedetection.NrMeasurementSettings;
 import org.emmef.audio.noisedetection.WeighedRmsLoudnessMeasurementFilter;
@@ -15,12 +16,12 @@ public class WeighedRmsNoiserReductionFilter implements ChainableFilter {
 	private final double minFreq;
 	private final double maxFreq;
 	private final long sampleRate;
-	private final RmsDetection rmsDetection;
+	private final Detection rmsDetection;
 	private final double[] delayBuffer;
 	private int delayPointer = 0;
 
-	static RmsDetection createDetection(long sampleRate) {
-		return new RmsDetection(sampleRate, WeighedRmsLoudnessMeasurementFilter.ATTACK_SECONDS, WeighedRmsLoudnessMeasurementFilter.RELEASE_SECONDS, 0.05, 0.5);
+	static Detection createDetection(long sampleRate) {
+		return new RmsDetection(sampleRate, WeighedRmsLoudnessMeasurementFilter.ATTACK_SECONDS, WeighedRmsLoudnessMeasurementFilter.RELEASE_SECONDS, 0.05, 0.1);
 	}
 
 	public WeighedRmsNoiserReductionFilter(@Nonnull NrDynamics nrDynamics, @Nonnull NrMeasurementSettings nrMeasurements, double minFreq, double maxFreq, long sampleRate) {

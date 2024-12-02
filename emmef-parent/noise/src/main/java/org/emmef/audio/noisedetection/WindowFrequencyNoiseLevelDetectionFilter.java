@@ -1,6 +1,7 @@
 package org.emmef.audio.noisedetection;
 
 import org.emmef.audio.buckets.BucketScanner;
+import org.emmef.audio.buckets.Detection;
 import org.emmef.logging.FormatLogger;
 
 public class WindowFrequencyNoiseLevelDetectionFilter implements NoiseLevelDetectionFilter {
@@ -21,13 +22,13 @@ public class WindowFrequencyNoiseLevelDetectionFilter implements NoiseLevelDetec
 		return 20.0 * Math.pow(10, 0.05 * x);
 	}
 
-	private final BucketScanner scanner;
+	private final Detection scanner;
 	private final long[] frequency;
 	private final double maxRmsLevel;
 	private final NrMeasurementValues nrMeasurementSettings;
 	private final double minRmsLevel;
 
-	public WindowFrequencyNoiseLevelDetectionFilter(BucketScanner scanner, double maxRmsValue, NrMeasurementValues nrMeasurementSettings) {
+	public WindowFrequencyNoiseLevelDetectionFilter(Detection scanner, double maxRmsValue, NrMeasurementValues nrMeasurementSettings) {
 		this.scanner = scanner;
 		this.nrMeasurementSettings = nrMeasurementSettings;
 		this.maxRmsLevel = maxRmsValue;
@@ -47,9 +48,9 @@ public class WindowFrequencyNoiseLevelDetectionFilter implements NoiseLevelDetec
 
 	@Override
 	public double filter(double source) {
-		scanner.addUnscaledSample(source);
+		scanner.addSample(source);
 		if (scanner.isWholeBucketScanned()) {
-			double relativeRms = Math.max(scanner.getRootMeanSquared(), minRmsLevel) / minRmsLevel;
+			double relativeRms = Math.max(scanner.getValue(), minRmsLevel) / minRmsLevel;
 			int index = Math.min(stepFromValue(relativeRms), loudnessLevels - 1);
 			frequency[index]++;
 		}

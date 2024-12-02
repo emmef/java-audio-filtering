@@ -1,6 +1,6 @@
 package org.emmef.audio.buckets;
 
-public class BucketScanner {
+public class BucketScanner implements Detection {
 	public static final long SCALE_16BIT = 0x0000000000010000L;
 	public static final long SCALE_24BIT = 0x0000000001000000L;
 	public static final long SCALE_32BIT = 0x0000000100000000L;
@@ -8,7 +8,7 @@ public class BucketScanner {
 	public static final long SCALE_48BIT = 0x0001000000000000L;
 	public static final long SCALE_56BIT = 0x0100000000000000L;
 	public static final LongInteger ZERO = new LongInteger(1);
-	
+
 	private final long[] bucket;
 	private final double multiplier;
 	private final long scale;
@@ -27,13 +27,17 @@ public class BucketScanner {
 		}
 		this.bucket = new long[bucketSize];
 		this.scale = scale;
-		this.multiplier = 1.0 / (1.0 * scale * bucketSize); 
+		this.multiplier = 1.0 / (1.0 * scale * bucketSize);
 		reset();
 	}
-	
-	public final void addUnscaledSample(double sample) {
-		addSample((long)(sample * sample * scale));
+
+	@Override
+	public double addSample(double sample) {
+		addScaledSample((long) (sample * sample * scale));
+		return getValue();
 	}
+
+	@Override
 	public void reset() {
 		bucketPosition = 0;
 		sum.set(0);
@@ -46,32 +50,33 @@ public class BucketScanner {
 			maximum.add(Long.MIN_VALUE);
 		}
 	}
-	
+
+	@Override
 	public boolean isWholeBucketScanned() {
 		return wholeBucket;
 	}
-	
+
+	@Override
 	public int getBucketSize() {
 		return bucket.length;
 	}
-	
+
+	@Override
 	public double getMinimum() {
 		return multiplier * minimum.doubleValue();
 	}
 
+	@Override
 	public double getMaximum() {
 		return multiplier * maximum.doubleValue();
 	}
 
-	public double getMeanSquared() {
-		return multiplier * sum.doubleValue();
+	@Override
+	public double getValue() {
+		return Math.sqrt(multiplier * sum.doubleValue());
 	}
 
-	public double getRootMeanSquared() {
-		return Math.sqrt(getMeanSquared());
-	}
-
-	private final void addSample(long sample) {
+	private void addScaledSample(long sample) {
 		final long oldestSample = bucket[bucketPosition];
 		bucket[bucketPosition] = sample;
 		sum.subtract(oldestSample);
@@ -87,8 +92,7 @@ public class BucketScanner {
 		if (bucketPosition == bucket.length - 1) {
 			bucketPosition = 0;
 			wholeBucket = true;
-		}
-		else {
+		} else {
 			bucketPosition++;
 		}
 	}

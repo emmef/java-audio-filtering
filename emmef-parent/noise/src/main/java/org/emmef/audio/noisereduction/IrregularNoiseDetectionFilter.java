@@ -1,18 +1,19 @@
 package org.emmef.audio.noisereduction;
 
 import org.emmef.audio.buckets.BucketScanner;
+import org.emmef.audio.buckets.Detection;
 import org.emmef.audio.noisedetection.NrMeasurementSettings;
 import org.emmef.audio.noisedetection.NrMeasurementValues;
 import org.emmef.logging.FormatLogger;
 
 public class IrregularNoiseDetectionFilter implements ChainableFilter {
 	private static final FormatLogger logger = FormatLogger.getLogger(IrregularNoiseDetectionFilter.class);
-	private final BucketScanner scanner;
+	private final Detection scanner;
 	private final double noiseLevel;
 	private final byte[] markers;
 	private int position;
 
-	IrregularNoiseDetectionFilter(BucketScanner scanner, double noiseLevel, byte[] markers) {
+	IrregularNoiseDetectionFilter(Detection scanner, double noiseLevel, byte[] markers) {
 		this.scanner = scanner;
 		this.noiseLevel = noiseLevel;
 		this.markers = markers;
@@ -22,7 +23,7 @@ public class IrregularNoiseDetectionFilter implements ChainableFilter {
 	@Override
 	public double filter(double input) {
 		if ((markers[position] & NoiseLevelMarkerFilter.MARK) != 0) {
-			scanner.addUnscaledSample(input);
+			scanner.addSample(input);
 		}
 		position++;
 		return input;
@@ -55,7 +56,7 @@ public class IrregularNoiseDetectionFilter implements ChainableFilter {
 	
 	public static class Factory implements FilterFactory {
 		private final NrMeasurementValues nrMeasurements;
-		private final ThreadLocal<BucketScanner> scanner = new ThreadLocal<BucketScanner>();
+		private final ThreadLocal<Detection> scanner = new ThreadLocal<>();
 		private final RatedTimings ratedTimings;
 
 		public Factory(NrMeasurementSettings nrMeasurements, RatedTimings ratedTimings) {
@@ -69,7 +70,7 @@ public class IrregularNoiseDetectionFilter implements ChainableFilter {
 				throw new NullPointerException("filterMetaData");
 			}
 			final int bucketSize = ratedTimings.getEffectiveMeasurementSamples(nrMeasurements, minFreq);
-			final BucketScanner newScanner = new BucketScanner(bucketSize, BucketScanner.SCALE_48BIT);
+			final Detection newScanner = new BucketScanner(bucketSize, BucketScanner.SCALE_48BIT);
 			scanner.set(newScanner);
 			return new IrregularNoiseDetectionFilter(newScanner, ((Double)filterMetaData).doubleValue(), markers);
 		}

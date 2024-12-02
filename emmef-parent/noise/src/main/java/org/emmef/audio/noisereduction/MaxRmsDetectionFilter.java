@@ -1,13 +1,14 @@
 package org.emmef.audio.noisereduction;
 
 import org.emmef.audio.buckets.BucketScanner;
+import org.emmef.audio.buckets.Detection;
 import org.emmef.audio.noisedetection.NrMeasurementSettings;
 import org.emmef.logging.FormatLogger;
 
 public class MaxRmsDetectionFilter implements ChainableFilter {
 	private static final FormatLogger logger = FormatLogger.getLogger(MaxRmsDetectionFilter.class);
 
-	private final BucketScanner bucketScanner;
+	private final Detection bucketScanner;
 	private int count = 0;
 
 	public MaxRmsDetectionFilter(int bucketSize) {
@@ -20,7 +21,7 @@ public class MaxRmsDetectionFilter implements ChainableFilter {
 			logger.trace("%8d MaxRmsDetection sample %1.3e", count, source);
 		}
 		count++;
-		bucketScanner.addUnscaledSample(source);
+		bucketScanner.addSample(source);
 		return source;
 	}
 	

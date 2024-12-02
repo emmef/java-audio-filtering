@@ -2,11 +2,13 @@ package org.emmef.audio.buckets;
 
 import java.util.Arrays;
 
-public class RmsDetection {
+public class RmsDetection implements Detection {
 	private static final double INPUT_SCALE = Math.pow(2, 32);
 	private static final double OUTPUT_SCALE = 1.0 / INPUT_SCALE;
-	private static final double WINDOW_SHORT = 0.002;
+
 	private static final double WINDOW_PERCEIVED_DEFAULT = 0.4;
+	private static final double WINDOW_SHORT = 0.002;
+	private static final double WINDOW_PEAK = 0.001;
 
 	private final double longWindow;
 	private final double windowFactor;
@@ -23,7 +25,7 @@ public class RmsDetection {
 	private Entry entries[];
 	private int writeAt = 0;
 	private int processedSamples = 0;
-
+	private double minimum, maximum;
 
 	private final Integration.Factors fastReleaseFactors;
 
@@ -38,7 +40,7 @@ public class RmsDetection {
 		releaseIntegrator = new SampleMaximumSmoothRelease(releaseFactors);
 		fastReleaseFactors = new Integration.Factors();
 		sampleAndHold = new SampleAndHoldMaximumSmoothRelease(getHoldCount(), fastReleaseFactors);
-		peakScale = Math.sqrt(1.0 / longWindow);
+		peakScale = Math.sqrt(WINDOW_PEAK / longWindow);
 		entries = new Entry[steps + 1];
 		for (int i = 0; i < entries.length; i++) {
 			double relativeWindowSize = WINDOW_SHORT * Math.pow(windowFactor, stepPowerFactor * i) / WINDOW_PERCEIVED_DEFAULT;
@@ -49,6 +51,7 @@ public class RmsDetection {
 		reconfigure(sampleRate, attack, fastRelease, release);
 	}
 
+	@Override
 	public double addSample(double sample) {
 		long sumValue = Math.round(INPUT_SCALE * sample * sample);
 
@@ -62,9 +65,13 @@ public class RmsDetection {
 		processedSamples++;
 
 		double smoothAttack = attackIntegrator.integrate(detection);
-		return releaseIntegrator.addSampleGetValue(smoothAttack);
+		double value = releaseIntegrator.addSampleGetValue(smoothAttack);
+		minimum = Math.min(minimum, value);
+		maximum = Math.max(maximum, value);
+		return value;
 	}
 
+	@Override
 	public double getValue() {
 		if (buffer != null && processedSamples < buffer.length) {
 			double max = entries[0].getValue(processedSamples);
@@ -74,6 +81,16 @@ public class RmsDetection {
 			return max;
 		}
 		return releaseIntegrator.getValue();
+	}
+
+	@Override
+	public double getMinimum() {
+		return minimum;
+	}
+
+	@Override
+	public double getMaximum() {
+		return maximum;
 	}
 
 	public void reconfigure(long sampleRate, double attack, double fastRelease, double release) {
@@ -100,27 +117,29 @@ public class RmsDetection {
 		}
 	}
 
+	@Override
 	public int getHoldCount() {
 		return (int) (3.0 * attackFactors.getCount() * Integration.DOUBLE_INTEGRATOR_PROLONGATION_FACTOR);
 	}
 
-	public int getProcessedSamples() {
-		return processedSamples;
-	}
-
-	public boolean isFullFrameProcessed() {
+	@Override
+	public boolean isWholeBucketScanned() {
 		return buffer != null && processedSamples >= buffer.length;
 	}
 
-	public int windowSamples() {
+	@Override
+	public int getBucketSize() {
 		return buffer != null ? buffer.length : 0;
 	}
 
+	@Override
 	public void reset() {
 		Arrays.fill(buffer, 0);
 		for (int i = 0; i <= steps; i++) {
 			entries[i].reset();
 		}
+		minimum = Double.MAX_VALUE;
+		maximum = Double.MIN_VALUE;
 	}
 
 	private final class Entry {
