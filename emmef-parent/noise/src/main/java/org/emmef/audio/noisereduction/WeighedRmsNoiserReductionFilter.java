@@ -20,8 +20,8 @@ public class WeighedRmsNoiserReductionFilter implements ChainableFilter {
 	private final double[] delayBuffer;
 	private int delayPointer = 0;
 
-	static Detection createDetection(long sampleRate) {
-		return new RmsDetection(sampleRate, WeighedRmsLoudnessMeasurementFilter.ATTACK_SECONDS, WeighedRmsLoudnessMeasurementFilter.RELEASE_SECONDS, 0.05, 0.1);
+	static Detection createDetection(long sampleRate, NrMeasurementSettings settings) {
+		return new RmsDetection(sampleRate, settings.rmsWin);
 	}
 
 	public WeighedRmsNoiserReductionFilter(@Nonnull NrDynamics nrDynamics, @Nonnull NrMeasurementSettings nrMeasurements, double minFreq, double maxFreq, long sampleRate) {
@@ -30,7 +30,7 @@ public class WeighedRmsNoiserReductionFilter implements ChainableFilter {
 		this.minFreq = minFreq;
 		this.maxFreq = maxFreq;
 		this.sampleRate = sampleRate;
-		this.rmsDetection = createDetection(sampleRate);
+		this.rmsDetection = createDetection(sampleRate, nrMeasurements);
 		this.delayBuffer = new double[rmsDetection.getHoldCount()];
 		logger.info(this);
 	}
@@ -65,7 +65,7 @@ public class WeighedRmsNoiserReductionFilter implements ChainableFilter {
 			this.sampleRate = sampleRate;
 			this.nrDynamicsFactory = nrDynamicsFactory;
 			this.nrMeasurements = nrMeasurements;
-			this.latency = createDetection(sampleRate).getHoldCount();
+			this.latency = createDetection(sampleRate, nrMeasurements).getHoldCount();
 		}
 
 		@Override

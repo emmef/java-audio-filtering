@@ -11,7 +11,7 @@ public class NoiseLevelDetectionFilterFactory implements FilterFactory {
 
 	public NoiseLevelDetectionFilterFactory(long sampleRate, NrMeasurementSettings nrMeasurementSettings) {
 		this.nrMeasurementSettings = nrMeasurementSettings.withSampleRate(sampleRate);
-		scanner.set(new BucketScanner(NoiseLevelDetectionFilterFactory.this.nrMeasurementSettings.noiseWinwSamples, BucketScanner.SCALE_48BIT));
+		scanner.set(new BucketScanner(sampleRate, NoiseLevelDetectionFilterFactory.this.nrMeasurementSettings.noiseWin));
 	}
 
 	@Override

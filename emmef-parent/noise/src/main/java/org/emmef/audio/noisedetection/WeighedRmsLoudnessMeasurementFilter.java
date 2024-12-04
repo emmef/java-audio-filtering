@@ -37,7 +37,7 @@ public final class WeighedRmsLoudnessMeasurementFilter implements ChainableFilte
 		this.nrMeasurements = nrMeasurements;
 		this.minFreq = minFreq;
 		this.maxFreq = maxFreq;
-		this.rmsDetection = new RmsDetection(sampleRate, ATTACK_SECONDS, RELEASE_SECONDS, 0.0, 0.05);
+		this.rmsDetection = new RmsDetection(sampleRate, nrMeasurements.rmsWin);
 		this.start = (int) (sampleRate * nrMeasurements.skipStartSecs) + rmsDetection.getBucketSize();
 		this.end = markers.length - (int) (sampleRate * nrMeasurements.skipEndSecs);
 	}

@@ -68,7 +68,7 @@ public class DefaultTimings implements Timings {
 		return lowestFrequency;
 	}
 	
-	public final Timings withSampleRate(double sampleRate) {
+	public final Timings withSampleRate(long sampleRate) {
 		return new RatedTimings(this, sampleRate);
 	}
 	

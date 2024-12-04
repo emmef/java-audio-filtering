@@ -34,26 +34,25 @@ public class IrregularNoiseDetectionFilter implements ChainableFilter {
 		position = 0;
 		scanner.reset();
 	}
-	
+
 	public double getNoiseLevel() {
 		final double newNoiseLevel;
 		final double correction;
 		if (scanner.isWholeBucketScanned()) {
 			newNoiseLevel = Math.max(Math.sqrt(scanner.getMaximum()), noiseLevel);
 			correction = newNoiseLevel / noiseLevel;
-		}
-		else {
+		} else {
 			newNoiseLevel = noiseLevel;
 			correction = 1.0;
 		}
 		if (correction > 1.0) {
-			logger.info("Irregular noise level correction: %+1.1f dB (bucket %d samples)", 20*Math.log10(correction), scanner.getBucketSize());
+			logger.info("Irregular noise level correction: %+1.1f dB (bucket %d samples)", 20 * Math.log10(correction), scanner.getBucketSize());
 		}
-		
+
 		return newNoiseLevel;
 	}
 
-	
+
 	public static class Factory implements FilterFactory {
 		private final NrMeasurementValues nrMeasurements;
 		private final ThreadLocal<Detection> scanner = new ThreadLocal<>();
@@ -61,7 +60,7 @@ public class IrregularNoiseDetectionFilter implements ChainableFilter {
 
 		public Factory(NrMeasurementSettings nrMeasurements, RatedTimings ratedTimings) {
 			this.ratedTimings = ratedTimings;
-			this.nrMeasurements = nrMeasurements.withSampleRate((int)ratedTimings.sampleRate);
+			this.nrMeasurements = nrMeasurements.withSampleRate((int) ratedTimings.sampleRate);
 		}
 
 		@Override
@@ -70,9 +69,9 @@ public class IrregularNoiseDetectionFilter implements ChainableFilter {
 				throw new NullPointerException("filterMetaData");
 			}
 			final int bucketSize = ratedTimings.getEffectiveMeasurementSamples(nrMeasurements, minFreq);
-			final Detection newScanner = new BucketScanner(bucketSize, BucketScanner.SCALE_48BIT);
+			final Detection newScanner = new BucketScanner(ratedTimings.sampleRate, ratedTimings.timings.getEffectiveMeasurementTime(nrMeasurements, minFreq));
 			scanner.set(newScanner);
-			return new IrregularNoiseDetectionFilter(newScanner, ((Double)filterMetaData).doubleValue(), markers);
+			return new IrregularNoiseDetectionFilter(newScanner, ((Double) filterMetaData).doubleValue(), markers);
 		}
 
 		@Override

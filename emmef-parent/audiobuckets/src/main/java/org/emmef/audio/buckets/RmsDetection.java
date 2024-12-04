@@ -10,6 +10,10 @@ public class RmsDetection implements Detection {
 	private static final double WINDOW_SHORT = 0.002;
 	private static final double WINDOW_PEAK = 0.001;
 
+	private static final double FAST_ATTACK = WINDOW_PEAK;
+	private static final double FAST_RELEASE = 0.020;
+	private static final double SLOW_RELEASE = 0.050;
+
 	private final double longWindow;
 	private final double windowFactor;
 	private final int steps;
@@ -28,9 +32,10 @@ public class RmsDetection implements Detection {
 	private double minimum, maximum;
 
 	private final Integration.Factors fastReleaseFactors;
+	private int holdCount;
 
-	public RmsDetection(long sampleRate, double attack, double fastRelease, double release, Double windowSize) {
-		longWindow = windowSize != null ? Math.min(WINDOW_PERCEIVED_DEFAULT, Math.max(WINDOW_SHORT * 4, windowSize)) : WINDOW_PERCEIVED_DEFAULT;
+	public RmsDetection(long sampleRate, double windowSize) {
+		longWindow = Math.min(WINDOW_PERCEIVED_DEFAULT, Math.max(WINDOW_SHORT * 4, windowSize));
 		windowFactor = longWindow / WINDOW_SHORT;
 		steps = (int) ((Math.log(windowFactor)) / Math.log(Math.sqrt(2.0)));
 		stepPowerFactor = 1.0 / steps;
@@ -43,12 +48,12 @@ public class RmsDetection implements Detection {
 		peakScale = Math.sqrt(WINDOW_PEAK / longWindow);
 		entries = new Entry[steps + 1];
 		for (int i = 0; i < entries.length; i++) {
-			double relativeWindowSize = WINDOW_SHORT * Math.pow(windowFactor, stepPowerFactor * i) / WINDOW_PERCEIVED_DEFAULT;
+			double relativeWindowSize = WINDOW_SHORT * Math.pow(windowFactor, stepPowerFactor * i) / longWindow;
 			double squaredScale = Math.sqrt(relativeWindowSize);
 			entries[i] = new Entry(squaredScale);
 		}
 
-		reconfigure(sampleRate, attack, fastRelease, release);
+		reconfigure(sampleRate);
 	}
 
 	@Override
@@ -93,10 +98,11 @@ public class RmsDetection implements Detection {
 		return maximum;
 	}
 
-	public void reconfigure(long sampleRate, double attack, double fastRelease, double release) {
-		attackFactors.setCount(attack * sampleRate / Integration.DOUBLE_INTEGRATOR_PROLONGATION_FACTOR, 1.0);
-		releaseFactors.setCount(release * sampleRate / Integration.DOUBLE_INTEGRATOR_PROLONGATION_FACTOR, 1.0);
-		fastReleaseFactors.setCount(fastRelease * sampleRate / Integration.DOUBLE_INTEGRATOR_PROLONGATION_FACTOR, 1.0);
+	public void reconfigure(long sampleRate) {
+		attackFactors.setCount(FAST_ATTACK * sampleRate / Integration.DOUBLE_INTEGRATOR_PROLONGATION_FACTOR, 1.0);
+		releaseFactors.setCount(SLOW_RELEASE * sampleRate / Integration.DOUBLE_INTEGRATOR_PROLONGATION_FACTOR, 1.0);
+		fastReleaseFactors.setCount(FAST_RELEASE * sampleRate / Integration.DOUBLE_INTEGRATOR_PROLONGATION_FACTOR, 1.0);
+		holdCount = (int) (3.0 * attackFactors.getCount() * Integration.DOUBLE_INTEGRATOR_PROLONGATION_FACTOR);
 
 		sampleAndHold.setHoldCount(getHoldCount());
 		sampleAndHold.setValue(0);
@@ -119,7 +125,7 @@ public class RmsDetection implements Detection {
 
 	@Override
 	public int getHoldCount() {
-		return (int) (3.0 * attackFactors.getCount() * Integration.DOUBLE_INTEGRATOR_PROLONGATION_FACTOR);
+		return holdCount;
 	}
 
 	@Override
@@ -158,7 +164,7 @@ public class RmsDetection implements Detection {
 
 		void reconfigure(int bucketSize) {
 			this.bucketSize = bucketSize;
-			this.sampleAndHold.setHoldCount(getHoldCount());
+			this.sampleAndHold.setHoldCount(holdCount);
 			this.sampleAndHold.setValue(0);
 			this.usedScale = scale / bucketSize;
 			this.readPosition = (buffer.length - bucketSize) % buffer.length;

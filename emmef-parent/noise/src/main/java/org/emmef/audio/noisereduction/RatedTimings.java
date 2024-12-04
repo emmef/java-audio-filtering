@@ -4,9 +4,9 @@ import org.emmef.audio.noisedetection.NrMeasurementSettings;
 
 public class RatedTimings implements Timings {
 	public final Timings timings;
-	public final double sampleRate;
+	public final long sampleRate;
 	
-	public RatedTimings(Timings defaultTimings, double sampleRate) {
+	public RatedTimings(Timings defaultTimings, long sampleRate) {
 		if (defaultTimings == null) {
 			throw new NullPointerException("defaultTimings");
 		}

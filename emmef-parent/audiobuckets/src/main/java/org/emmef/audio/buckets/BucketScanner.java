@@ -1,39 +1,36 @@
 package org.emmef.audio.buckets;
 
 public class BucketScanner implements Detection {
-	public static final long SCALE_16BIT = 0x0000000000010000L;
-	public static final long SCALE_24BIT = 0x0000000001000000L;
-	public static final long SCALE_32BIT = 0x0000000100000000L;
-	public static final long SCALE_40BIT = 0x0000010000000000L;
-	public static final long SCALE_48BIT = 0x0001000000000000L;
-	public static final long SCALE_56BIT = 0x0100000000000000L;
+	public static final long SCALE = 2L^40;
 	public static final LongInteger ZERO = new LongInteger(1);
+	private static final double WINDOW_MIN = 0.01;
+	private static final double WINDOW_MAX = 0.5;
 
 	private final long[] bucket;
 	private final double multiplier;
-	private final long scale;
 	private int bucketPosition;
 	private final LongInteger minimum = new LongInteger(2);
 	private final LongInteger maximum = new LongInteger(2);
 	private final LongInteger sum = new LongInteger(2);
 	private boolean wholeBucket;
 
-	public BucketScanner(int bucketSize, long scale) {
+	public BucketScanner(long sampleRate, double windowSize) {
+		this((int)Math.round(sampleRate * Math.min(WINDOW_MAX, Math.max(WINDOW_MIN, windowSize))));
+		
+	}
+	
+	private BucketScanner(int bucketSize) {
 		if (bucketSize < 1) {
 			throw new IllegalStateException("Bucket should contain at least 1 sample");
 		}
-		if (scale < 1 || scale > Long.MAX_VALUE) {
-			throw new IllegalStateException("Scale must be between 1 and " + Long.MAX_VALUE);
-		}
 		this.bucket = new long[bucketSize];
-		this.scale = scale;
-		this.multiplier = 1.0 / (1.0 * scale * bucketSize);
+		this.multiplier = 1.0 / (1.0 * SCALE * bucketSize);
 		reset();
 	}
 
 	@Override
 	public double addSample(double sample) {
-		addScaledSample((long) (sample * sample * scale));
+		addScaledSample((long) (sample * sample * SCALE));
 		return getValue();
 	}
 

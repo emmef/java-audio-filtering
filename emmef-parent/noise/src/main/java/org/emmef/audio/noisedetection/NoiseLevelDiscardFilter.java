@@ -97,9 +97,11 @@ public class NoiseLevelDiscardFilter implements ChainableFilter {
 	public static class Factory implements FilterFactory {
 		private final NrMeasurementValues nrMeasurements;
 		private final ThreadLocal<Detection> scanner = new ThreadLocal<>();
+		private final long sampleRate;
 
 		public Factory(final long samplerate, final NrMeasurementSettings nrMeasurements) {
 			this.nrMeasurements = nrMeasurements.withSampleRate(samplerate);
+			this.sampleRate = samplerate;
 		}
 
 		@Override
@@ -113,7 +115,7 @@ public class NoiseLevelDiscardFilter implements ChainableFilter {
 				throw new NullPointerException("maxRms");
 			}
 			double threshold = maxRms.doubleValue() / nrMeasurements.maxSnRatio;
-			scanner.set(new BucketScanner((int)(0.5 + nrMeasurements.skipWinwSamples), BucketScanner.SCALE_56BIT));
+			scanner.set(new BucketScanner(sampleRate, nrMeasurements.skipWin));
 			
 			return new NoiseLevelDiscardFilter(markers, scanner.get(), nrMeasurements, maxRms);
 		}

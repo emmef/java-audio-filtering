@@ -11,8 +11,8 @@ public class MaxRmsDetectionFilter implements ChainableFilter {
 	private final Detection bucketScanner;
 	private int count = 0;
 
-	public MaxRmsDetectionFilter(int bucketSize) {
-		bucketScanner = new BucketScanner(bucketSize, BucketScanner.SCALE_48BIT);
+	public MaxRmsDetectionFilter(long sampleRate, double windowSeconds) {
+		bucketScanner = new BucketScanner(sampleRate, windowSeconds);
 	}
 	
 	@Override
@@ -43,15 +43,17 @@ public class MaxRmsDetectionFilter implements ChainableFilter {
 	}
 
 	public static class Factory implements FilterFactory {
-		private final int bucketSize;
+		private final double windowSeconds;
+		private final long sampleRate;
 
-		public Factory(long samplerate, NrMeasurementSettings nrMeasurements) {
-			bucketSize = Math.max(1, (int)(0.5 + nrMeasurements.rmsWin * samplerate));
+		public Factory(long sampleRate, NrMeasurementSettings nrMeasurements) {
+			this.windowSeconds = nrMeasurements.rmsWin;
+			this.sampleRate = sampleRate;
 		}
 
 		@Override
 		public ChainableFilter createFilter(Object filterMetaData, double minFreq, double maxFreq, byte[] markers) {
-			return new MaxRmsDetectionFilter(bucketSize);
+			return new MaxRmsDetectionFilter(sampleRate, windowSeconds);
 		}
 
 		@Override
