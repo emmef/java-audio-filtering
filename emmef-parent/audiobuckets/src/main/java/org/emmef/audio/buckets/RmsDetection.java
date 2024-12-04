@@ -102,7 +102,7 @@ public class RmsDetection implements Detection {
 		attackFactors.setCount(FAST_ATTACK * sampleRate / Integration.DOUBLE_INTEGRATOR_PROLONGATION_FACTOR, 1.0);
 		releaseFactors.setCount(SLOW_RELEASE * sampleRate / Integration.DOUBLE_INTEGRATOR_PROLONGATION_FACTOR, 1.0);
 		fastReleaseFactors.setCount(FAST_RELEASE * sampleRate / Integration.DOUBLE_INTEGRATOR_PROLONGATION_FACTOR, 1.0);
-		holdCount = (int) (3.0 * attackFactors.getCount() * Integration.DOUBLE_INTEGRATOR_PROLONGATION_FACTOR);
+		holdCount = (int)Math.round(0.5 + WINDOW_SHORT * sampleRate);
 
 		sampleAndHold.setHoldCount(getHoldCount());
 		sampleAndHold.setValue(0);
