@@ -68,8 +68,7 @@ public class IrregularNoiseDetectionFilter implements ChainableFilter {
 			if (filterMetaData == null) {
 				throw new NullPointerException("filterMetaData");
 			}
-			final int bucketSize = ratedTimings.getEffectiveMeasurementSamples(nrMeasurements, minFreq);
-			final BucketScanner newScanner = new BucketScanner(bucketSize);
+			final BucketScanner newScanner = new BucketScanner(ratedTimings.sampleRate, ratedTimings.getEffectiveMeasurementTime(nrMeasurements, minFreq));
 			scanner.set(newScanner);
 			return new IrregularNoiseDetectionFilter(newScanner, ((Double)filterMetaData).doubleValue(), markers);
 		}

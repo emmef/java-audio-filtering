@@ -15,15 +15,20 @@ public class BucketScanner {
 	private long sum;
 	private boolean wholeBucket;
 
-	public BucketScanner(int bucketSize) {
-		if (bucketSize < 1) {
-			throw new IllegalStateException("Bucket should contain at least 1 sample");
+	public BucketScanner(double sampleRate, double bucketSeconds) {
+		long bucketSamples = Math.round(bucketSeconds * sampleRate);
+		if (bucketSamples < 1) {
+			throw new IllegalArgumentException("Invalid bucket size: combination of sample rate (" + sampleRate + ") and seconds (" + bucketSeconds + ") yields zero samples");
 		}
+		else if (bucketSamples > Integer.MAX_VALUE) {
+			throw new IllegalArgumentException("Invalid bucket size: combination of sample rate (" + sampleRate + ") and seconds (" + bucketSeconds + ") is too large:" + bucketSamples);
+		}
+		int bucketSize = (int)bucketSamples;
 		this.bucket = new long[bucketSize];
 		this.multiplier = 1.0 / (SCALE * bucketSize);
 		reset();
 	}
-	
+
 	public final void addSample(double sample) {
 		long quantizedSample = Math.round(sample * sample * SCALE);
 		final long oldestSample = bucket[bucketPosition];

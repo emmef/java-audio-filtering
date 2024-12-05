@@ -35,7 +35,7 @@ public class NoiseReductionFilter implements ChainableFilter {
 		this.dynamics = dynamics;
 		times = new Times(timings, nrSettings, minFreq);
 		
-		bucketScanner = new BucketScanner(times.measurementSamples);
+		bucketScanner = new BucketScanner(timings.sampleRate, times.measurementTime);
 		attackFactor = Integrator.characteristicDecayPerSample(times.attackSamples);
 		releaseFactor = Integrator.characteristicDecayPerSample(times.releaseSamples);
 		int filterLatency = times.predictionSamples;

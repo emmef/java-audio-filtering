@@ -88,11 +88,11 @@ public class NoiseLevelMarkerFilter implements ChainableFilter {
 		private final ThreadLocal<BucketScanner> scanner;
 		private final NrMeasurementValues nrMeasurements;
 		
-		public Factory(long samplerate, NrMeasurementSettings nrMeasurements) {
-			this.nrMeasurements = nrMeasurements.withSampleRate(samplerate);
+		public Factory(long sampleRate, NrMeasurementSettings nrMeasurements) {
+			this.nrMeasurements = nrMeasurements.withSampleRate(sampleRate);
 			scanner = new ThreadLocal<BucketScanner>() {@Override
 			protected BucketScanner initialValue() {
-				return new BucketScanner(Factory.this.nrMeasurements.noiseWinwSamples);
+				return new BucketScanner(sampleRate, Factory.this.nrMeasurements.noiseWin);
 			}};
 		}
 
