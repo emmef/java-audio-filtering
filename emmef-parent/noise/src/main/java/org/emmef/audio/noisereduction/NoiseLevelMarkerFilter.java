@@ -39,7 +39,7 @@ public class NoiseLevelMarkerFilter implements ChainableFilter {
 			position++;
 			return input;
 		}
-		scanner.addUnscaledSample(input);
+		scanner.addSample(input);
 		if (scanner.isWholeBucketScanned()) {
 			final double average = scanner.getMeanSquared();
 			if (marking) {
@@ -92,7 +92,7 @@ public class NoiseLevelMarkerFilter implements ChainableFilter {
 			this.nrMeasurements = nrMeasurements.withSampleRate(samplerate);
 			scanner = new ThreadLocal<BucketScanner>() {@Override
 			protected BucketScanner initialValue() {
-				return new BucketScanner(Factory.this.nrMeasurements.noiseWinwSamples, BucketScanner.SCALE_48BIT);
+				return new BucketScanner(Factory.this.nrMeasurements.noiseWinwSamples);
 			}};
 		}
 

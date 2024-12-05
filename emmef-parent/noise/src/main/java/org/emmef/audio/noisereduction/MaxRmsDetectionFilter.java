@@ -11,7 +11,7 @@ public class MaxRmsDetectionFilter implements ChainableFilter {
 	private int count = 0;
 
 	public MaxRmsDetectionFilter(int bucketSize) {
-		bucketScanner = new BucketScanner(bucketSize, BucketScanner.SCALE_48BIT);
+		bucketScanner = new BucketScanner(bucketSize);
 	}
 	
 	@Override
@@ -20,7 +20,7 @@ public class MaxRmsDetectionFilter implements ChainableFilter {
 			logger.trace("%8d MaxRmsDetection sample %1.3e", count, source);
 		}
 		count++;
-		bucketScanner.addUnscaledSample(source);
+		bucketScanner.addSample(source);
 		return source;
 	}
 	

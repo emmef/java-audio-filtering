@@ -47,7 +47,7 @@ public class WindowFrequencyNoiseLevelDetectionFilter implements NoiseLevelDetec
 
 	@Override
 	public double filter(double source) {
-		scanner.addUnscaledSample(source);
+		scanner.addSample(source);
 		if (scanner.isWholeBucketScanned()) {
 			double relativeRms = Math.max(scanner.getRootMeanSquared(), minRmsLevel) / minRmsLevel;
 			int index = Math.min(stepFromValue(relativeRms), loudnessLevels - 1);

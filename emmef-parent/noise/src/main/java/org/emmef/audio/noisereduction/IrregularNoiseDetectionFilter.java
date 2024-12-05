@@ -22,7 +22,7 @@ public class IrregularNoiseDetectionFilter implements ChainableFilter {
 	@Override
 	public double filter(double input) {
 		if ((markers[position] & NoiseLevelMarkerFilter.MARK) != 0) {
-			scanner.addUnscaledSample(input);
+			scanner.addSample(input);
 		}
 		position++;
 		return input;
@@ -69,7 +69,7 @@ public class IrregularNoiseDetectionFilter implements ChainableFilter {
 				throw new NullPointerException("filterMetaData");
 			}
 			final int bucketSize = ratedTimings.getEffectiveMeasurementSamples(nrMeasurements, minFreq);
-			final BucketScanner newScanner = new BucketScanner(bucketSize, BucketScanner.SCALE_48BIT);
+			final BucketScanner newScanner = new BucketScanner(bucketSize);
 			scanner.set(newScanner);
 			return new IrregularNoiseDetectionFilter(newScanner, ((Double)filterMetaData).doubleValue(), markers);
 		}

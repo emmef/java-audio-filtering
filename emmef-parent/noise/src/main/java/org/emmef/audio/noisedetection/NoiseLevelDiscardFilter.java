@@ -57,7 +57,7 @@ public class NoiseLevelDiscardFilter implements ChainableFilter {
 			position++;
 			return source;
 		}
-		scanner.addUnscaledSample(source);
+		scanner.addSample(source);
 		
 		if (scanner.isWholeBucketScanned()) {
 			final double minimum = scanner.getMeanSquared();
@@ -113,7 +113,7 @@ public class NoiseLevelDiscardFilter implements ChainableFilter {
 				throw new NullPointerException("maxRms");
 			}
 			double threshold = maxRms.doubleValue() / nrMeasurements.maxSnRatio;
-			scanner.set(new BucketScanner((int)(0.5 + nrMeasurements.skipWinwSamples), BucketScanner.SCALE_56BIT));
+			scanner.set(new BucketScanner((int)(0.5 + nrMeasurements.skipWinwSamples)));
 			
 			return new NoiseLevelDiscardFilter(markers, scanner.get(), nrMeasurements, maxRms);
 		}

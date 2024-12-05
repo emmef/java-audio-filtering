@@ -13,7 +13,7 @@ public class NoiseLevelDetectionFilterFactory implements FilterFactory {
 		scanner = new ThreadLocal<BucketScanner>() {
 			@Override
 			protected BucketScanner initialValue() {
-				return new BucketScanner(NoiseLevelDetectionFilterFactory.this.nrMeasurementSettings.noiseWinwSamples, BucketScanner.SCALE_48BIT);
+				return new BucketScanner(NoiseLevelDetectionFilterFactory.this.nrMeasurementSettings.noiseWinwSamples);
 			}
 		};
 	}

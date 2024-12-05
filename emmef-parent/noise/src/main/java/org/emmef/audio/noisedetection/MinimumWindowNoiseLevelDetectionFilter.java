@@ -2,8 +2,6 @@ package org.emmef.audio.noisedetection;
 
 import org.emmef.audio.buckets.BucketScanner;
 import org.emmef.audio.noisedetection.NoiseLevelDiscardFilter.DiscardInfo;
-import org.emmef.audio.noisereduction.ChainableFilter;
-import org.emmef.audio.noisereduction.FilterFactory;
 import org.emmef.logging.FormatLogger;
 
 public class MinimumWindowNoiseLevelDetectionFilter implements NoiseLevelDetectionFilter {
@@ -32,7 +30,7 @@ public class MinimumWindowNoiseLevelDetectionFilter implements NoiseLevelDetecti
 	@Override
 	public double filter(double source) {
 		if ((ignored[position] & NoiseLevelDiscardFilter.MARK) == 0) {
-			scanner.addUnscaledSample(source);
+			scanner.addSample(source);
 		}
 		position++;
 		return source;
