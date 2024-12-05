@@ -9,10 +9,10 @@ public class BucketScanner {
 	
 	private final long[] bucket;
 	private final double multiplier;
-	private int bucketPosition;
-	private final LongInteger minimum = new LongInteger(2);
-	private final LongInteger maximum = new LongInteger(2);
-	private final LongInteger sum = new LongInteger(2);
+	private int bucketPosition = 0;
+	private long minimum;
+	private long maximum;
+	private long sum;
 	private boolean wholeBucket;
 
 	public BucketScanner(int bucketSize) {
@@ -28,15 +28,11 @@ public class BucketScanner {
 		long quantizedSample = Math.round(sample * sample * SCALE);
 		final long oldestSample = bucket[bucketPosition];
 		bucket[bucketPosition] = quantizedSample;
-		sum.subtract(oldestSample);
-		sum.add(quantizedSample);
+		sum -= oldestSample;
+		sum += quantizedSample;
 		if (wholeBucket) {
-			if (sum.compareTo(minimum) < 0) {
-				minimum.set(sum);
-			}
-			if (sum.compareTo(maximum) > 0) {
-				maximum.set(sum);
-			}
+			minimum = Math.min(minimum, sum);
+			maximum = Math.max(maximum, sum);
 		}
 		if (bucketPosition == bucket.length - 1) {
 			bucketPosition = 0;
@@ -46,16 +42,19 @@ public class BucketScanner {
 			bucketPosition++;
 		}
 	}
+
+	private long getSumOfScaledSquared() {
+		return sum;
+	}
+
 	public void reset() {
 		bucketPosition = 0;
-		sum.set(0);
+		sum = 0;
 		wholeBucket = false;
-		minimum.set(Long.MAX_VALUE);
-		maximum.set(Long.MIN_VALUE);
+		minimum = Long.MAX_VALUE;
+		maximum = Long.MIN_VALUE;
 		for (int i = 0; i < bucket.length; i++) {
 			bucket[i] = 0;
-			minimum.add(Long.MAX_VALUE);
-			maximum.add(Long.MIN_VALUE);
 		}
 	}
 	
@@ -68,15 +67,15 @@ public class BucketScanner {
 	}
 	
 	public double getMinimum() {
-		return multiplier * minimum.doubleValue();
+		return multiplier * minimum;
 	}
 
 	public double getMaximum() {
-		return multiplier * maximum.doubleValue();
+		return multiplier * maximum;
 	}
 
 	public double getMeanSquared() {
-		return multiplier * sum.doubleValue();
+		return multiplier * getSumOfScaledSquared();
 	}
 
 	public double getRootMeanSquared() {
