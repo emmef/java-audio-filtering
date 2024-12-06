@@ -31,7 +31,7 @@ public class MaxRmsDetectionFilter implements ChainableFilter {
 	
 	@Override
 	public Double getMetaData() {
-		final double maximum = Math.sqrt(bucketScanner.getMaximum());
+		final double maximum = bucketScanner.getMaximum();
 		logger.trace("Max RMS = %1.1e (%1.1fdB)", maximum, 20* Math.log(maximum) / Math.log(10));
 		return maximum;
 	}

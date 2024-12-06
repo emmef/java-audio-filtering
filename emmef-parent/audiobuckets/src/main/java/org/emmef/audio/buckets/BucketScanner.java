@@ -1,13 +1,12 @@
 package org.emmef.audio.buckets;
 
-import lombok.RequiredArgsConstructor;
-
 public class BucketScanner {
 	public static final long MAX_SAMPLE_RATE = 192000;
 	public static final double MAX_WINDOW_SECONDS = 1.0;
 	public static final double MAX_WINDOW_SAMPLES = Math.round(0.5 + MAX_WINDOW_SECONDS * MAX_SAMPLE_RATE);
 	public static final double SCALE = Long.MAX_VALUE / MAX_WINDOW_SAMPLES;
-	public static final LongInteger ZERO = new LongInteger(1);
+	public static final double PEAK_WINDOW_SECONDS = 0.001;
+	public static final double MIN_REL_WINDOW_DISTANCE = Math.sqrt(2.0);
 
 	private final long[] bucket;
 	private long sampleNumber = 0;
@@ -16,22 +15,24 @@ public class BucketScanner {
 	private double sum;
 	private final Window window[];
 
-	public BucketScanner(double sampleRate, double bucketSeconds, int windows) {
-		long bucketSamples = Math.round(bucketSeconds * sampleRate);
-		if (bucketSamples < 1) {
-			throw new IllegalArgumentException("Invalid bucket size: combination of sample rate (" + sampleRate + ") and seconds (" + bucketSeconds + ") yields zero samples");
-		} else if (bucketSamples > Integer.MAX_VALUE) {
-			throw new IllegalArgumentException("Invalid bucket size: combination of sample rate (" + sampleRate + ") and seconds (" + bucketSeconds + ") is too large:" + bucketSamples);
+	public BucketScanner(double sampleRate, double windowSeconds, boolean weighted) {
+		int bucketSamples = getBucketSamples(sampleRate, windowSeconds);
+		this.bucket = new long[bucketSamples];
+		this.window = new Window[weighted ? getWindows(windowSeconds) : 1];
+		this.window[0] = new Window(bucketSamples);
+
+		int peakSamples = (int)Math.round(PEAK_WINDOW_SECONDS * sampleRate);
+		final double sizeFactor = 1.0 * peakSamples / bucketSamples;
+		for (int i = 1; i < window.length; i++) {
+			double pow = (1.0 * i) / (window.length - 1.0);
+			int windowSize = (int)Math.round(bucketSamples * Math.pow(sizeFactor, pow));
+			this.window[i] = new Window(windowSize);
 		}
-		int bucketSize = (int) bucketSamples;
-		this.bucket = new long[bucketSize];
-		this.window = new Window[1];
-		this.window[0] = new Window(bucketSize);
 		reset();
 	}
 
 	public BucketScanner(double sampleRate, double bucketSeconds) {
-		this(sampleRate, bucketSeconds, 1);
+		this(sampleRate, bucketSeconds, false);
 	}
 
 	public final void addSample(double sample) {
@@ -60,6 +61,9 @@ public class BucketScanner {
 		for (int i = 0; i < bucket.length; i++) {
 			bucket[i] = 0;
 		}
+		for (int i = 0; i < window.length; i++) {
+			window[i].reset();
+		}
 	}
 
 	public boolean isWholeBucketScanned() {
@@ -71,23 +75,45 @@ public class BucketScanner {
 	}
 
 	public double getMinimum() {
-		return minimum;
+		return Math.sqrt(minimum);
 	}
 
 	public double getMaximum() {
-		return maximum;
+		return Math.sqrt(maximum);
 	}
 
 	public double getMeanSquared() {
 		return sum;
 	}
 
-	public double getRootMeanSquared() {
+	public double getValue() {
 		return Math.sqrt(getMeanSquared());
 	}
 
-	public double getValue() {
-		return getRootMeanSquared();
+	private static int getBucketSamples(double sampleRate, double windowSeconds) {
+		if (windowSeconds < PEAK_WINDOW_SECONDS) {
+			throw new IllegalArgumentException("Window seconds (" + windowSeconds + ") smaller than peak-measurement window (" + PEAK_WINDOW_SECONDS + ").");
+		}
+		if (windowSeconds > MAX_WINDOW_SECONDS) {
+			throw new IllegalArgumentException("Window seconds (" + windowSeconds + ") larger than maximum window size (" + MAX_WINDOW_SECONDS + ").");
+		}
+		long bucketSamples = Math.round(windowSeconds * sampleRate);
+		if (bucketSamples < 1) {
+			throw new IllegalArgumentException("Invalid bucket size: combination of sample rate (" + sampleRate + ") and seconds (" + windowSeconds + ") yields zero samples");
+		}
+		if (bucketSamples > Integer.MAX_VALUE) {
+			throw new IllegalArgumentException("Invalid bucket size: combination of sample rate (" + sampleRate + ") and seconds (" + windowSeconds + ") is too large:" + bucketSamples);
+		}
+
+		return (int)bucketSamples;
+	}
+
+	private static int getWindows(double windowSeconds) {
+		double ratio = windowSeconds / MAX_WINDOW_SECONDS;
+		if (ratio < MIN_REL_WINDOW_DISTANCE) {
+			return 1;
+		}
+		return (int)(Math.log(windowSeconds / PEAK_WINDOW_SECONDS) / Math.log(MIN_REL_WINDOW_DISTANCE));
 	}
 
 	private class Window {
@@ -97,7 +123,12 @@ public class BucketScanner {
 
 		Window(int windowSize) {
 			this.samples = Math.min(windowSize, bucket.length);
-			final double weight = Math.pow(1.0 * this.samples / bucket.length, 0.25);
+			/**
+			 * ITU specifies a 0.25 law for the relative loudness as a function of the relative window size.
+			 * But we're calculating in squares, so the actual weight after taking the square root
+			 * is correct (and relative ordering is not affected).
+			 */
+			final double weight = Math.pow(1.0 * this.samples / bucket.length, 0.5);
 			this.scale = weight / (SCALE * this.samples);
 			this.sum = 0;
 		}

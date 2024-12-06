@@ -38,7 +38,7 @@ public class IrregularNoiseDetectionFilter implements ChainableFilter {
 		final double newNoiseLevel;
 		final double correction;
 		if (scanner.isWholeBucketScanned()) {
-			newNoiseLevel = Math.max(Math.sqrt(scanner.getMaximum()), noiseLevel);
+			newNoiseLevel = Math.max(scanner.getMaximum(), noiseLevel);
 			correction = newNoiseLevel / noiseLevel;
 		}
 		else {

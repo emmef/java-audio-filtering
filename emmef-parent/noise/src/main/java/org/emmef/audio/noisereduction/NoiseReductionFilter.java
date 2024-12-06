@@ -110,7 +110,7 @@ public class NoiseReductionFilter implements ChainableFilter {
 		}
 		
 		bucketScanner.addSample(filterSample);
-		final double max = Math.sqrt(bucketScanner.getMeanSquared());
+		final double max = bucketScanner.getValue();
 		if (max > runningMax) {
 			runningMax = max;
 			holdCount = maximumHoldCount;

@@ -42,7 +42,7 @@ public class MinimumWindowNoiseLevelDetectionFilter implements NoiseLevelDetecti
 		final double absMin = maxRmsLevel / nrMeasurementSettings.maxSnRatio;
 		final double maxMin = maxRmsLevel / nrMeasurementSettings.minSnRatio;
 		if (scanner.isWholeBucketScanned()) {
-			minimum = Math.min(maxMin, Math.max(absMin, Math.sqrt(scanner.getMinimum())));
+			minimum = Math.min(maxMin, Math.max(absMin, scanner.getMinimum()));
 		}
 		else {
 			minimum = Math.sqrt(absMin * maxMin);
