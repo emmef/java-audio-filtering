@@ -8,7 +8,15 @@
 	<artifactId>audiobuckets</artifactId>
   <name>Audio buckets</name>
   <description>An audio bucket is a fixed size number of (filtered) samples hat contains operations for audio processing</description>
-	<build>
+    <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.34</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+    <build>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
