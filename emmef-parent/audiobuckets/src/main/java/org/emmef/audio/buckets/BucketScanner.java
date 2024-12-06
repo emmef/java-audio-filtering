@@ -9,11 +9,10 @@ public class BucketScanner {
 	
 	private final long[] bucket;
 	private final double multiplier;
-	private int bucketPosition = 0;
+	private long sampleNumber = 0;
 	private long minimum;
 	private long maximum;
 	private long sum;
-	private boolean wholeBucket;
 
 	public BucketScanner(double sampleRate, double bucketSeconds) {
 		long bucketSamples = Math.round(bucketSeconds * sampleRate);
@@ -30,21 +29,18 @@ public class BucketScanner {
 	}
 
 	public final void addSample(double sample) {
+		int bucketPosition = (int)(sampleNumber % bucket.length);
+		sampleNumber++;
 		long quantizedSample = Math.round(sample * sample * SCALE);
+
 		final long oldestSample = bucket[bucketPosition];
 		bucket[bucketPosition] = quantizedSample;
 		sum -= oldestSample;
 		sum += quantizedSample;
-		if (wholeBucket) {
+
+		if (isWholeBucketScanned()) {
 			minimum = Math.min(minimum, sum);
 			maximum = Math.max(maximum, sum);
-		}
-		if (bucketPosition == bucket.length - 1) {
-			bucketPosition = 0;
-			wholeBucket = true;
-		}
-		else {
-			bucketPosition++;
 		}
 	}
 
@@ -53,9 +49,8 @@ public class BucketScanner {
 	}
 
 	public void reset() {
-		bucketPosition = 0;
+		sampleNumber = 0;
 		sum = 0;
-		wholeBucket = false;
 		minimum = Long.MAX_VALUE;
 		maximum = Long.MIN_VALUE;
 		for (int i = 0; i < bucket.length; i++) {
@@ -64,7 +59,7 @@ public class BucketScanner {
 	}
 	
 	public boolean isWholeBucketScanned() {
-		return wholeBucket;
+		return sampleNumber >= bucket.length;
 	}
 	
 	public int getBucketSize() {
