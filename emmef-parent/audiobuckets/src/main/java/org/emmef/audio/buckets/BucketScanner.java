@@ -32,7 +32,7 @@ public class BucketScanner {
 	}
 
 	public BucketScanner(double sampleRate, double bucketSeconds) {
-		this(sampleRate, bucketSeconds, false);
+		this(sampleRate, bucketSeconds, true);
 	}
 
 	public final void addSample(double sample) {
@@ -109,7 +109,7 @@ public class BucketScanner {
 	}
 
 	private static int getWindows(double windowSeconds) {
-		double ratio = windowSeconds / MAX_WINDOW_SECONDS;
+		double ratio = windowSeconds / PEAK_WINDOW_SECONDS;
 		if (ratio < MIN_REL_WINDOW_DISTANCE) {
 			return 1;
 		}

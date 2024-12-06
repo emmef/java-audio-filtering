@@ -17,7 +17,7 @@ public class BandSplitFilterSet {
 	public enum Direction {
 		UPWARD, DOWNWARD;
 		
-		public static final Direction DEFAULT = DOWNWARD;
+		public static final Direction DEFAULT = UPWARD;
 		
 		public static Direction effectiveValueOf(String value) {
 			if (value == null) {
